@@ -1,0 +1,43 @@
+{
+  "env": {
+    "ENABLE_TOOL_SEARCH": "true"
+  },
+  "permissions": {
+    "allow": [
+      "mcp__atlassian-agent",
+      "Read(~/.claude)",
+      "mcp__pencil"
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-command.sh"
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "dx@ykdojo": true,
+    "cli-anything@cli-anything": true
+  },
+  "extraKnownMarketplaces": {
+    "cli-anything": {
+      "source": {
+        "source": "github",
+        "repo": "HKUDS/CLI-Anything"
+      }
+    }
+  },
+  "skipDangerousModePermissionPrompt": true,
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/check-context.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
