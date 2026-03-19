@@ -2,7 +2,7 @@
 
 My personal Claude Code configuration for disciplined, efficient AI-assisted development.
 
-Built on top of two excellent community repos - [claude-code-tips](https://github.com/ykdojo/claude-code-tips) and [everything-claude-code](https://github.com/anthropics/everything-claude-code) - with my own customizations on top.
+Built on top of two excellent community repos - [claude-code-tips](https://github.com/ykdojo/claude-code-tips) and [everything-claude-code](https://github.com/affaan-m/everything-claude-code) - with my own customizations on top.
 
 [한국어 버전은 여기](#한국어)
 
@@ -68,7 +68,7 @@ Three plugins provide structured development workflows.
 
 | Plugin | Marketplace | What it does |
 |--------|-------------|--------------|
-| **superpowers** | [claude-plugins-official](https://github.com/anthropics/claude-plugins-official) | Core workflows: brainstorming, TDD, debugging, code review, planning, parallel agents |
+| **superpowers** | [obra/superpowers](https://github.com/obra/superpowers) | Core workflows: brainstorming, TDD, debugging, code review, planning, parallel agents |
 | **dx** | [ykdojo](https://github.com/ykdojo/claude-code-tips) | Context management: /clone, /half-clone, /handoff, /gha, /review-claudemd |
 | **cli-anything** | [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | Auto-connect CLI tools |
 
@@ -272,7 +272,7 @@ This setup is built on top of these community repos. Clone them for additional a
 | Repo | What's in it |
 |------|-------------|
 | [ykdojo/claude-code-tips](https://github.com/ykdojo/claude-code-tips) | 45 Claude Code tips, dx plugin source, statusline/context scripts, Boris Cherny's tips, agentic coding spectrum guide |
-| [anthropics/everything-claude-code](https://github.com/anthropics/everything-claude-code) | 18 agents (planner, architect, tdd-guide, security-reviewer...), 94 skills, 48 commands, hooks, 21 MCP configs, language-specific rules (TypeScript, Go, Kotlin, Swift, PHP, Perl) |
+| [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code) | 18 agents (planner, architect, tdd-guide, security-reviewer...), 94 skills, 48 commands, hooks, 21 MCP configs, language-specific rules (TypeScript, Go, Kotlin, Swift, PHP, Perl) |
 
 ### What I picked from each
 
@@ -331,7 +331,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 내가 사용하는 Claude Code 세팅과 가이드.
 
-체계적이고 효율적인 AI 기반 개발을 위해 [claude-code-tips](https://github.com/ykdojo/claude-code-tips)와 [everything-claude-code](https://github.com/anthropics/everything-claude-code) 두 커뮤니티 레포를 기반으로, 내 커스텀 설정을 얹어서 사용 중.
+체계적이고 효율적인 AI 기반 개발을 위해 [claude-code-tips](https://github.com/ykdojo/claude-code-tips)와 [everything-claude-code](https://github.com/affaan-m/everything-claude-code) 두 커뮤니티 레포를 기반으로, 내 커스텀 설정을 얹어서 사용 중.
 
 ## 이 세팅으로 얻는 것
 
@@ -374,6 +374,6 @@ bash setup.sh
 | 레포 | 내용 |
 |------|------|
 | [ykdojo/claude-code-tips](https://github.com/ykdojo/claude-code-tips) | 45개 팁, dx 플러그인 원본, 상태바/컨텍스트 스크립트 |
-| [anthropics/everything-claude-code](https://github.com/anthropics/everything-claude-code) | 18 에이전트, 94 스킬, 48 커맨드, 훅, 21 MCP 설정, 언어별 규칙 |
+| [affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code) | 18 에이전트, 94 스킬, 48 커맨드, 훅, 21 MCP 설정, 언어별 규칙 |
 
 더 많은 agents/skills/hooks/configs가 필요하면 위 레포를 클론해서 골라 쓰면 됨.
