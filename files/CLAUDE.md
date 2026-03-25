@@ -26,7 +26,26 @@
 - Write tests for critical paths
 - Keep commits atomic with conventional commit format (feat, fix, refactor, docs, test, chore)
 
+## Verification (CRITICAL)
+- NEVER claim work is "done" without running tests or proving it works
+- Give yourself a way to verify every change - tests, build, lint, or manual check
+- "It should work" is not verification. Run the code.
+- Use `/verify` command before marking any task complete
+
+## Planning & Parallel Work
+- Start complex tasks in Plan mode (Shift+Tab twice) - invest in the plan
+- If something goes sideways, stop and re-plan immediately instead of pushing forward
+- Use subagents for independent subtasks to keep main context clean
+- Break subtasks small enough to complete in under 50% context
+- Use `/parallel-plan` to identify parallelizable work
+
 ## Context Management
+- Run `/compact` proactively at ~50% context usage, don't wait for 80%
 - When context usage exceeds 80%, consider using /compact or /half-clone
 - Keep conversations focused on single topics
-- Use handoff docs for multi-session work
+- Use `/handoff` to create handoff docs for multi-session work
+- Offload research and exploration to subagents to preserve main context
+
+## Gotchas
+- When Claude makes a repeated mistake, add a rule here so it doesn't happen again
+- Mixed old/new patterns in codebase confuse Claude - finish migrations before adding new patterns

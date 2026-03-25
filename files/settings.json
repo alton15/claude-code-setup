@@ -1,12 +1,62 @@
 {
   "env": {
-    "ENABLE_TOOL_SEARCH": "true"
+    "ENABLE_TOOL_SEARCH": "true",
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "80"
   },
   "permissions": {
     "allow": [
       "mcp__atlassian-agent",
       "Read(~/.claude)",
-      "mcp__pencil"
+      "mcp__pencil",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git stash:*)",
+      "Bash(git worktree:*)",
+      "Bash(npm run:*)",
+      "Bash(npm test:*)",
+      "Bash(npm install:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(pip install:*)",
+      "Bash(pip show:*)",
+      "Bash(pytest:*)",
+      "Bash(uv:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(which:*)",
+      "Bash(gh pr:*)",
+      "Bash(gh issue:*)",
+      "Bash(gh repo:*)",
+      "Bash(gh run:*)",
+      "Bash(docker compose:*)",
+      "Bash(docker build:*)",
+      "Bash(docker ps:*)",
+      "Bash(curl:*)",
+      "Bash(jq:*)",
+      "Bash(realpath:*)",
+      "Bash(wc:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(sort:*)",
+      "Bash(uniq:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(docker rm:*)",
+      "Bash(docker rmi:*)",
+      "Bash(kubectl delete:*)"
     ]
   },
   "statusLine": {
