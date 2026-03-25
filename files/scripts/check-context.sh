@@ -16,7 +16,7 @@ if [[ -z "$transcript_path" || ! -f "$transcript_path" ]]; then
     exit 0
 fi
 
-max_context=200000
+max_context=1000000
 
 context_length=$(jq -s '
     map(select(.message.usage and .isSidechain != true and .isApiErrorMessage != true)) |
