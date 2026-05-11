@@ -46,6 +46,19 @@
 - Use `/handoff` to create handoff docs for multi-session work
 - Offload research and exploration to subagents to preserve main context
 
+## Skill Building
+- When building custom skills, use `skill-creator` skill first for scaffolding
+- Folder: kebab-case only. File: exactly `SKILL.md` (case-sensitive). No README.md inside skill folder
+- Description formula: `[What it does] + [When to use it] + [Key capabilities]` (under 1024 chars)
+- Include specific trigger phrases users would actually say in description
+- No XML tags (`< >`) in frontmatter, no "claude"/"anthropic" in name field
+- Keep SKILL.md under 5,000 words - move detailed docs to `references/`
+- Always include error handling and concrete examples in instructions
+- Be specific and actionable (not "validate data" but exact commands + common errors)
+- Test 3 areas: triggering accuracy, functional correctness, performance vs baseline
+- Use 5 patterns as needed: Sequential Workflow, Multi-MCP Coordination, Iterative Refinement, Context-Aware Tool Selection, Domain-Specific Intelligence
+- For critical validations, bundle scripts (`scripts/`) rather than relying on language instructions
+
 ## Gotchas
 - When Claude makes a repeated mistake, add a rule here so it doesn't happen again
 - Mixed old/new patterns in codebase confuse Claude - finish migrations before adding new patterns

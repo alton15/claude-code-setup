@@ -1,11 +1,29 @@
 #!/bin/bash
 
 # Stop hook: suggests /half-clone when context usage exceeds 85%.
-# Blocks Claude from stopping and tells it to run /half-clone.
+# When triggered, it blocks Claude from stopping and tells it to run /half-clone,
+# which creates a new conversation with only the later half to continue in.
+#
+# Install by adding to ~/.claude/settings.json:
+# {
+#   "hooks": {
+#     "Stop": [{
+#       "matcher": "",
+#       "hooks": [{
+#         "type": "command",
+#         "command": "bash ~/.claude/scripts/check-context.sh"
+#       }]
+#     }]
+#   }
+# }
+#
+# max_context is set to 1,000,000 to match the 1M context window models
+# (Claude Opus 4.7 [1M], Sonnet 4.6 [1M]). Drop to 200000 for standard 200K
+# context models.
 
 input=$(cat)
 
-# Prevent infinite loops
+# Prevent infinite loops - exit if already triggered by a stop hook
 stop_hook_active=$(echo "$input" | jq -r '.stop_hook_active // false')
 if [[ "$stop_hook_active" == "true" ]]; then
     exit 0

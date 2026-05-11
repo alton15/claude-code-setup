@@ -190,6 +190,7 @@ Configured in `~/.claude.json`. Paths are machine-specific - adjust after clonin
 |---------|--------------|
 | `ENABLE_TOOL_SEARCH` | Enables deferred tool search |
 | `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=80` | Auto-compress context at 80% usage |
+| `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Token budget the % is calculated against (400K window) |
 | `permissions.allow` (40+ commands) | Auto-allow git, npm, python, docker, gh, file ops, MCP servers |
 | `permissions.deny` (6 commands) | Block `rm -rf`, `git push --force`, `git reset --hard`, `docker rm/rmi`, `kubectl delete` |
 | `statusLine` | Custom bash script showing model/git/context/cost |
@@ -316,6 +317,7 @@ claude() {
 - **Verification** - Never claim done without proof. Run tests/build/lint. Use `/verify`.
 - **Planning & Parallel** - Plan mode for complex tasks. Subagents for independent work. Re-plan on failure.
 - **Context** - `/compact` at 50%. `/half-clone` at 80%. Subagents preserve main context.
+- **Skill Building** - skill-creator for scaffolding. kebab-case folders, exact `SKILL.md` filename. Description formula + trigger phrases. Bundle validation scripts.
 - **Gotchas** - Living section for repeated mistakes. Finish migrations before adding new patterns.
 
 ---
@@ -437,7 +439,7 @@ bash setup.sh
 | **Python 규칙 (4개)** | PEP 8, pytest, bandit, Protocol/dataclass 패턴 |
 | **컨텍스트 (3개)** | dev (코드 우선), review (보안/품질), research (조사 우선) |
 | **Shell 별칭** | `c`, `ch`, `--fs` 단축키 |
-| **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, Gotchas |
+| **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, 스킬 빌딩 가이드, Gotchas |
 
 ## 출처 레포
 
