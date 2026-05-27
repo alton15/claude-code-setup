@@ -246,11 +246,11 @@ Always-on rules that Claude follows automatically. No need to mention them - the
 
 | Rule | Key points |
 |------|------------|
-| **coding-style** | Immutability first. Small files (200-400 lines, 800 max). No deep nesting. No hardcoded values. |
-| **security** | 8-point pre-commit checklist. No hardcoded secrets. Parameterized queries. XSS/CSRF prevention. |
-| **testing** | 80% minimum coverage. TDD: RED -> GREEN -> REFACTOR. Unit + integration + E2E. |
+| **coding-style** | Immutability first. KISS/DRY/YAGNI principles. Small files (200-400 lines, 800 max). Naming conventions (camelCase/PascalCase/UPPER_SNAKE_CASE). Code smells: deep nesting, magic numbers, long functions. |
+| **security** | 8-point pre-commit checklist. No hardcoded secrets. Parameterized queries. XSS/CSRF prevention. Security Response Protocol (STOP → fix → rotate → sweep). |
+| **testing** | 80% minimum coverage. TDD: RED -> GREEN -> REFACTOR. Unit + integration + E2E. AAA pattern (Arrange-Act-Assert). Descriptive test naming. |
 | **git-workflow** | Conventional commits (feat/fix/refactor/docs/test/chore). Full-history PR analysis. |
-| **patterns** | Repository pattern. API response envelope. Skeleton project approach. |
+| **patterns** | Repository pattern. API response envelope. Skeleton projects evaluated by parallel agents (security/extensibility/relevance/planning). |
 
 ### Python (activates on `**/*.py` files only)
 
@@ -271,7 +271,7 @@ Optional mode-based system prompts. Use with `--system-prompt` flag or shell ali
 |---------|------|----------|
 | `dev.md` | Development | Code first, explain after. Working > Perfect > Clean. |
 | `review.md` | Code review | Read thoroughly. Prioritize by severity. Suggest fixes, not just problems. |
-| `research.md` | Research | Investigate before acting. Hypothesis -> evidence -> findings. |
+| `research.md` | Research | Investigate before acting. Hypothesis -> evidence -> findings. Favor Read / Grep / Glob / WebSearch / Explore agent. |
 
 ```bash
 # Optional aliases
@@ -435,7 +435,7 @@ bash setup.sh
 | **상태바** | 모델/git/컨텍스트 사용률/예상 비용/토큰 실시간 표시 |
 | **Stop Hook** | 컨텍스트 85% 초과 시 /half-clone 안내 |
 | **커스텀 커맨드 (5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
-| **공통 규칙 (5개)** | 코딩 스타일, 보안, 테스트 (80%+), git 워크플로우, 디자인 패턴 |
+| **공통 규칙 (5개)** | 코딩 스타일 (불변성, KISS/DRY/YAGNI, 네이밍, 코드 스멜), 보안 (Response Protocol 포함), 테스트 (80%+, AAA 패턴), git 워크플로우, 디자인 패턴 (parallel agents 평가) |
 | **Python 규칙 (4개)** | PEP 8, pytest, bandit, Protocol/dataclass 패턴 |
 | **컨텍스트 (3개)** | dev (코드 우선), review (보안/품질), research (조사 우선) |
 | **Shell 별칭** | `c`, `ch`, `--fs` 단축키 |
