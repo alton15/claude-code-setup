@@ -5,7 +5,7 @@ paths:
 ---
 # Python Testing
 
-> Extends common/testing.md with Python specifics.
+> This file extends [common/testing.md](../common/testing.md) with Python specific content.
 
 ## Framework
 
@@ -32,3 +32,7 @@ def test_calculate_total():
 def test_database_connection():
     ...
 ```
+
+## Reference
+
+See skill: `python-testing` for detailed pytest patterns and fixtures.

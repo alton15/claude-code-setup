@@ -5,7 +5,7 @@ paths:
 ---
 # Python Coding Style
 
-> Extends common/coding-style.md with Python specifics.
+> This file extends [common/coding-style.md](../common/coding-style.md) with Python specific content.
 
 ## Standards
 
@@ -36,3 +36,7 @@ class Point(NamedTuple):
 - **black** for code formatting
 - **isort** for import sorting
 - **ruff** for linting
+
+## Reference
+
+See skill: `python-patterns` for comprehensive Python idioms and patterns.
