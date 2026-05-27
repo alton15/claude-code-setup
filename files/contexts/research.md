@@ -16,5 +16,11 @@ Focus: Understanding before acting
 4. Verify with evidence
 5. Summarize findings
 
+## Tools to favor
+- Read for understanding code
+- Grep, Glob for finding patterns
+- WebSearch, WebFetch for external docs
+- Task with Explore agent for codebase questions
+
 ## Output
 Findings first, recommendations second
