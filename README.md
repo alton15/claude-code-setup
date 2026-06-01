@@ -58,11 +58,17 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   │   ├── testing.md            # 80% coverage, TDD workflow
 │   │   ├── git-workflow.md       # Conventional commits, PR workflow
 │   │   └── patterns.md           # Repository pattern, API envelope
-│   └── python/                   # Python-only rules (path: **/*.py)
-│       ├── coding-style.md       # PEP 8, type hints, black/ruff
-│       ├── testing.md            # pytest, coverage, markers
-│       ├── security.md           # env vars, bandit scanning
-│       └── patterns.md           # Protocol, dataclass DTOs
+│   ├── python/                   # Python-only rules (path: **/*.py)
+│   │   ├── coding-style.md       # PEP 8, type hints, black/ruff
+│   │   ├── testing.md            # pytest, coverage, markers
+│   │   ├── security.md           # env vars, bandit scanning
+│   │   └── patterns.md           # Protocol, dataclass DTOs
+│   └── react/                    # React-only rules (path: **/*.tsx, **/*.jsx, ...)
+│       ├── coding-style.md       # Components, props, JSX style
+│       ├── hooks.md              # useState/useEffect/custom hooks discipline
+│       ├── patterns.md           # Composition, container/presentational, context
+│       ├── security.md           # XSS, dangerouslySetInnerHTML, sanitization
+│       └── testing.md            # RTL, MSW, user-centric assertions
 ├── contexts/                     # Optional mode switching
 │   ├── dev.md                    # Code first, explain later
 │   ├── review.md                 # Security/quality checklist
@@ -412,7 +418,7 @@ This setup is built on top of these community repos. Clone them for additional a
 ### What I picked from each
 
 **From everything-claude-code:**
-- `rules/common/` and `rules/python/` - coding standards, security, testing, patterns
+- `rules/common/`, `rules/python/`, `rules/react/` - coding standards, security, testing, patterns
 - `contexts/` - dev/review/research mode definitions
 
 **From claude-code-tips:**
@@ -486,6 +492,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **커스텀 커맨드 5개** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
 - **항상 적용되는 코딩 규칙** - 불변성, 보안 체크, TDD, conventional commits
 - **Python 전용 규칙** - `*.py` 파일에서만 활성화 (PEP 8, pytest, bandit, ruff)
+- **React 전용 규칙** - `*.tsx`/`*.jsx` 파일에서만 활성화 (컴포넌트, hooks, XSS, RTL)
 - **플러그인 3개** - 브레인스토밍, 플래닝, 디버깅, 코드 리뷰 등 체계적 워크플로우
 - **Shell 단축키** - `c` (claude), `ch` (chrome 모드), `--fs` (fork-session)
 - **모드별 컨텍스트** - dev/review/research 마인드셋 전환
@@ -516,6 +523,7 @@ bash setup.sh
 | **커스텀 커맨드 (5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
 | **공통 규칙 (5개)** | 코딩 스타일 (불변성, KISS/DRY/YAGNI, 네이밍, 코드 스멜), 보안 (Response Protocol 포함), 테스트 (80%+, AAA 패턴), git 워크플로우, 디자인 패턴 (parallel agents 평가) |
 | **Python 규칙 (4개)** | PEP 8, pytest, bandit, Protocol/dataclass 패턴 |
+| **React 규칙 (5개)** | 코딩 스타일, hooks 규율, 패턴(composition/context), 보안(XSS/sanitization), 테스트(RTL/MSW) |
 | **컨텍스트 (3개)** | dev (코드 우선), review (보안/품질), research (조사 우선) |
 | **Shell 별칭** | `c`, `ch`, `--fs` 단축키 |
 | **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, 스킬 빌딩 가이드, Gotchas |
