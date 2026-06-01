@@ -73,6 +73,11 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── dev.md                    # Code first, explain later
 │   ├── review.md                 # Security/quality checklist
 │   └── research.md               # Investigate before coding
+├── agents/                       # Specialized subagents (from wshobson/agents)
+│   ├── observability-engineer.md # Prometheus/Grafana/OTel/SLO design
+│   ├── database-admin.md         # Cloud Postgres ops, HA/DR, performance
+│   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring
+│   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
 └── skills/                       # Custom skills (add your own here)
 ```
 
@@ -310,6 +315,8 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 
 Custom slash commands in `~/.claude/commands/` - type `/command-name` to use.
 
+**Custom (this repo)**
+
 | Command | Purpose |
 |---------|---------|
 | `/review` | Review uncommitted changes for security, quality, correctness before committing |
@@ -317,6 +324,30 @@ Custom slash commands in `~/.claude/commands/` - type `/command-name` to use.
 | `/verify` | Run tests/build/lint to prove work actually works before claiming done |
 | `/handoff` | Generate HANDOFF.md for continuing work in a new session |
 | `/parallel-plan` | Break a task into independent subtasks for parallel subagent execution |
+
+**From [wshobson/agents](https://github.com/wshobson/agents)** — fill gaps in observability, DB ops, incident response, security:
+
+| Command | Purpose |
+|---------|---------|
+| `/slo-implement` | Design SLI/SLO frameworks with error budgets, multi-window burn-rate alerts, Prometheus recording rules |
+| `/sql-migrations` | Zero-downtime SQL migration generator (Alembic/Flyway/Liquibase) with rollback + validation gates |
+| `/incident-response` | Multi-agent SRE incident orchestrator with severity gating, state files, postmortem generation |
+| `/security-sast` | Multi-language SAST sweep (bandit/semgrep/CodeQL) with fix-ranked vulnerability reports |
+
+---
+
+## Agents
+
+Specialized subagents in `~/.claude/agents/`. Invoked via `Agent` tool with the subagent name.
+
+**From [wshobson/agents](https://github.com/wshobson/agents)** — chosen to fill gaps superpowers/dx/cli-anything don't cover:
+
+| Agent | When to use |
+|-------|-------------|
+| `observability-engineer` | Production monitoring/logging/tracing (Prometheus, Grafana, OTel, ELK, Jaeger). Pairs with oncall bot + backend services |
+| `database-admin` | Cloud Postgres ops — RDS/Aurora/Cloud SQL setup, HA/DR, backup, replication, perf tuning |
+| `mlops-engineer` | MLflow/Kubeflow/Airflow pipelines, model registry, experiment tracking, drift monitoring |
+| `threat-modeling-expert` | STRIDE/PASTA threat modeling, attack trees, architectural security review (opus-tier) |
 
 ---
 
@@ -384,7 +415,15 @@ claude() {
   done
   command claude "${args[@]}"
 }
+
+# claude-code-templates CLI (davila7) — component installer + monitoring
+alias cct='npx claude-code-templates@latest'
+alias cct-analytics='npx claude-code-templates@latest --analytics'   # real-time session dashboard
+alias cct-chats='npx claude-code-templates@latest --chats'           # conversation monitor
+alias cct-health='npx claude-code-templates@latest --health-check'   # installation diagnostics
 ```
+
+`cct` uses `npx` (no global install needed) — always pulls the latest version. Components install into the current project's `.claude/` directory, not globally.
 
 ---
 
@@ -448,6 +487,11 @@ This setup is built on top of these community repos. Clone them for additional a
 - `content/` - guides on agentic coding spectrum, 10 tips for newer users
 - `system-prompt/` - version-specific system prompt patches
 
+**From wshobson/agents (added 2026-06):**
+- `agents/observability-engineer.md`, `database-admin.md`, `mlops-engineer.md`, `threat-modeling-expert.md`
+- `commands/slo-implement.md`, `sql-migrations.md`, `incident-response.md`, `security-sast.md`
+- Selected to fill observability/SRE/DB ops/MLOps/threat-modeling gaps not covered by superpowers, dx, or python rules
+
 ### External references — when to reach for them
 
 Not synced into this repo. Bookmarked for the specific situation in the right column.
@@ -479,8 +523,8 @@ Not synced into this repo. Bookmarked for the specific situation in the right co
 |------|-------------|
 | [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery) | Reference for all 12+ hook lifecycle events with runnable examples |
 | [disler/claude-code-hooks-multi-agent-observability](https://github.com/disler/claude-code-hooks-multi-agent-observability) | Real-time dashboard when running multiple agents simultaneously. This setup has no observability layer yet |
-| [davila7/claude-code-templates](https://github.com/davila7/claude-code-templates) | CLI for configuring + monitoring CC with templates, hooks, MCPs |
-| [wshobson/agents](https://github.com/wshobson/agents) | Cross-harness plugins (works in CC + Codex + Cursor + OpenCode + Gemini CLI + Copilot). 83 plugins / 191 agents / 155 skills / 102 commands from one Markdown source |
+| [davila7/claude-code-templates](https://github.com/davila7/claude-code-templates) ✅ | CLI for configuring + monitoring CC with templates, hooks, MCPs. **Installed as `cct` alias** — see [Shell aliases](#shell-aliases) |
+| [wshobson/agents](https://github.com/wshobson/agents) ✅ partial | Cross-harness plugins (CC + Codex + Cursor + OpenCode + Gemini CLI + Copilot). 87 plugins / 191+ agents / 155 skills / 102 commands. **4 agents + 4 commands cherry-picked** — see [Agents](#agents) and [Custom commands](#custom-commands) |
 | [poshan0126/dotclaude](https://github.com/poshan0126/dotclaude) | Compare `.claude/` layout — has code/security/perf/doc reviewer plugins worth checking against this setup |
 | [shareAI-lab/mini-claude-code](https://github.com/shareAI-lab/mini-claude-code) | 5-version progressive tutorial (~1100 LOC). For teaching colleagues how CC actually works |
 
@@ -527,7 +571,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **80%에서 자동 컨텍스트 압축** - `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`
 - **40+ 퍼미션 사전 허용** - git, npm, python, docker, gh 등 팝업 없이 자동 승인
 - **위험 명령어 차단** - `rm -rf`, `git push --force`, `git reset --hard` 등 deny 처리
-- **커스텀 커맨드 5개** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
+- **커스텀 커맨드 9개** - 자체 5개 (`/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`) + wshobson 4개 (`/slo-implement`, `/sql-migrations`, `/incident-response`, `/security-sast`)
+- **특화 에이전트 4개** - observability-engineer, database-admin, mlops-engineer, threat-modeling-expert (wshobson/agents에서 cherry-pick)
 - **항상 적용되는 코딩 규칙** - 불변성, 보안 체크, TDD, conventional commits
 - **Python 전용 규칙** - `*.py` 파일에서만 활성화 (PEP 8, pytest, bandit, ruff)
 - **React 전용 규칙** - `*.tsx`/`*.jsx` 파일에서만 활성화 (컴포넌트, hooks, XSS, RTL)
@@ -558,7 +603,9 @@ bash setup.sh
 | **프로젝트 스코프 설정** | `<repo>/.claude/settings.json` (팀 공유) + `settings.local.json` (개인) - hooks/permissions를 프로젝트별로. 예: auto-card-news-ver2는 git push 전 pytest 알림, vc-smart-simulator는 Bash 전 lint 실행 |
 | **상태바** | 모델/git/컨텍스트 사용률/예상 비용/토큰 실시간 표시 |
 | **Stop Hook** | 컨텍스트 85% 초과 시 /half-clone 안내 |
-| **커스텀 커맨드 (5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
+| **커스텀 커맨드 (자체 5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
+| **커스텀 커맨드 (wshobson 4개)** | /slo-implement (SLO/burn-rate), /sql-migrations (zero-downtime), /incident-response (SRE 오케스트레이션), /security-sast (다언어 SAST) |
+| **특화 에이전트 (wshobson 4개)** | observability-engineer, database-admin (Postgres ops), mlops-engineer (MLflow/Kubeflow), threat-modeling-expert (STRIDE/PASTA, opus) |
 | **공통 규칙 (5개)** | 코딩 스타일 (불변성, KISS/DRY/YAGNI, 네이밍, 코드 스멜), 보안 (Response Protocol 포함), 테스트 (80%+, AAA 패턴), git 워크플로우, 디자인 패턴 (parallel agents 평가) |
 | **Python 규칙 (4개)** | PEP 8, pytest, bandit, Protocol/dataclass 패턴 |
 | **React 규칙 (5개)** | 코딩 스타일, hooks 규율, 패턴(composition/context), 보안(XSS/sanitization), 테스트(RTL/MSW) |

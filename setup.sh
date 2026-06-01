@@ -13,10 +13,12 @@ echo ""
 echo "[1/9] Creating directories..."
 mkdir -p "$CLAUDE_DIR/rules/common"
 mkdir -p "$CLAUDE_DIR/rules/python"
+mkdir -p "$CLAUDE_DIR/rules/react"
 mkdir -p "$CLAUDE_DIR/scripts"
 mkdir -p "$CLAUDE_DIR/contexts"
 mkdir -p "$CLAUDE_DIR/skills"
 mkdir -p "$CLAUDE_DIR/commands"
+mkdir -p "$CLAUDE_DIR/agents"
 
 # 2. Copy CLAUDE.md
 echo "[2/9] Installing global CLAUDE.md..."
@@ -47,6 +49,7 @@ chmod +x "$CLAUDE_DIR/scripts/check-context.sh"
 echo "[5/9] Installing rules..."
 cp "$SCRIPT_DIR/files/rules/common/"*.md "$CLAUDE_DIR/rules/common/"
 cp "$SCRIPT_DIR/files/rules/python/"*.md "$CLAUDE_DIR/rules/python/"
+cp "$SCRIPT_DIR/files/rules/react/"*.md "$CLAUDE_DIR/rules/react/"
 
 # 6. Copy contexts
 echo "[6/9] Installing contexts..."
@@ -67,6 +70,15 @@ if ls "$SCRIPT_DIR/files/skills/"*.md 1>/dev/null 2>&1; then
     cp "$SCRIPT_DIR/files/skills/"*.md "$CLAUDE_DIR/skills/"
 else
     echo "  No custom skills to install"
+fi
+
+# 8b. Copy agents
+echo "      Installing agents..."
+if ls "$SCRIPT_DIR/files/agents/"*.md 1>/dev/null 2>&1; then
+    cp "$SCRIPT_DIR/files/agents/"*.md "$CLAUDE_DIR/agents/"
+    echo "      Installed: $(ls "$SCRIPT_DIR/files/agents/"*.md | wc -l | tr -d ' ') agents"
+else
+    echo "      No agents to install"
 fi
 
 # 9. Shell aliases
