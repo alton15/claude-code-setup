@@ -156,11 +156,14 @@ claude plugin install cli-anything@cli-anything
 
 ## MCP servers
 
-Configured in `~/.claude.json`. Paths are machine-specific - adjust after cloning.
+### Global (in `~/.claude.json` top-level `mcpServers`)
+
+Paths are machine-specific - adjust after cloning.
 
 | Server | Purpose | Auto-allowed |
 |--------|---------|--------------|
 | **atlassian-agent** | Jira issue lookup, Confluence page search | Yes |
+| **firecrawl-mcp** | Web search/scraping via local Firecrawl (`localhost:3002`) | Yes |
 | **pencil** | .pen file design editing, screenshots, layout inspection | Yes |
 
 ```json
@@ -171,6 +174,12 @@ Configured in `~/.claude.json`. Paths are machine-specific - adjust after clonin
       "command": "uv",
       "args": ["run", "--directory", "<path-to>/aitrics-agent", "python", "mcp_server.py"]
     },
+    "firecrawl-mcp": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["firecrawl-mcp"],
+      "env": { "FIRECRAWL_API_URL": "http://localhost:3002" }
+    },
     "pencil": {
       "type": "stdio",
       "command": "<path-to>/mcp-server-darwin-arm64",
@@ -179,6 +188,73 @@ Configured in `~/.claude.json`. Paths are machine-specific - adjust after clonin
   }
 }
 ```
+
+### Project-scoped — personal (`~/.claude.json` `projects.<path>.mcpServers`)
+
+Per-directory, only active when launched from that path. Not git-tracked. Not installed by `setup.sh`.
+
+| Project | Server | Type | Purpose |
+|---------|--------|------|---------|
+| `~/Downloads/resume` | **gmail-mcp** | http (`localhost:3000/mcp`) | Gmail integration via local HTTP server |
+| `~/Downloads/resume` | **gmail** | stdio (`gmail-mcp` binary) | Gmail via stdio fallback |
+| `~/Downloads/resume` | **browser-fetch** | stdio (`@anthropic/mcp-server-puppeteer`) | Browser-driven page fetch |
+| `~/vc/vc-monorepo` | **figma** | http (`mcp.figma.com/mcp`) | Figma official MCP |
+| `~/vc/vc-monorepo` | **figma-mcp** | stdio (`npx figma-mcp`, key via `env.FIGMA_API_KEY`) | Figma community MCP |
+| `~/project/oncall-bot` | **atlassian-agent** | stdio | Same binary as global; concrete path |
+
+Related sibling key — `disabledMcpServers` (array of names) turns a global MCP off for one project. Example: `vc-monorepo` disables `figma` while keeping `figma-mcp`.
+
+### Project-scoped — committed (`<project-root>/.mcp.json`)
+
+Separate mechanism: lives in the repo and is shared with whoever clones it. Same schema as the `mcpServers` block above.
+
+| Repo | Servers |
+|------|---------|
+| `~/vc/vc-monorepo/.mcp.json` | datadog (http) |
+| `~/project/oncall-bot/.mcp.json` | atlassian-agent (duplicate of `~/.claude.json` entry) |
+| `~/project/everything-claude-code/.mcp.json` | github, context7, exa, memory, playwright, sequential-thinking |
+
+### MCP secrets
+
+⚠️ Do **not** put API keys in `args` — they appear in process lists and any config dump. Use `env`:
+
+```json
+"figma-mcp": {
+  "command": "npx",
+  "args": ["figma-mcp"],
+  "env": { "FIGMA_API_KEY": "..." }
+}
+```
+
+If you must avoid even storing the key in the JSON file, set the env var in your shell and reference it as `${FIGMA_API_KEY}` (when the MCP client supports expansion).
+
+---
+
+## Project-scoped settings (non-MCP)
+
+Two layers stack on top of the global `~/.claude/settings.json`:
+
+| Layer | File | Git status | Purpose |
+|-------|------|-----------|---------|
+| **Project (shared)** | `<repo>/.claude/settings.json` | Commit | Team-wide permissions/hooks |
+| **Project (personal)** | `<repo>/.claude/settings.local.json` | gitignored | Per-machine overrides |
+
+Precedence (later wins): global → project shared → project local. Each layer can set `permissions`, `hooks`, `enabledPlugins`, etc.
+
+Examples from this user's projects (illustrative, not installed by `setup.sh`):
+
+| Project | What's set | Why |
+|---------|-----------|-----|
+| `~/project/auto-card-news-ver2/.claude/settings.json` | `PreToolUse` hook reminding to run pytest before `git push`; warn on `.md` writes outside CLAUDE/README/AGENT_HANDOFF | Project-specific test discipline |
+| `~/vc/vc-smart-simulator/.claude/settings.json` | `PreToolUse` hook running `.claude/hooks/lint-check.sh` before every Bash command | Enforce lint before shell actions |
+| `~/project/oncall-bot/.claude/settings.json`, `~/vc/be-oncall-bot/.claude/settings.json` | Empty `permissions` scaffold | Reserved for future allowlist |
+
+What can live under `<repo>/.claude/` besides `settings*.json`:
+
+- `commands/` — project-only slash commands
+- `agents/` — project-only subagents
+- `skills/` — project-only skills
+- `hooks/` — scripts referenced by `settings.json` hooks (e.g., `lint-check.sh` above)
 
 ---
 
@@ -387,7 +463,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 | Item | File | What to change |
 |------|------|----------------|
-| MCP server paths | `~/.claude.json` | Update binary/project paths for atlassian-agent, pencil |
+| MCP server paths | `~/.claude.json` | Update binary/project paths for atlassian-agent, pencil; set `FIRECRAWL_API_URL` for firecrawl-mcp |
 | MCP permissions | `~/.claude/settings.json` | Adjust `permissions.allow` for your MCP servers |
 
 ---
@@ -431,7 +507,10 @@ bash setup.sh
 | 구성 요소 | 설명 |
 |----------|------|
 | **플러그인** | superpowers (핵심 워크플로우 + [impeccable](https://github.com/pbakaus/impeccable) 디자인 스킬 21개), dx (컨텍스트 관리), cli-anything (CLI 연동) |
-| **MCP 서버** | atlassian-agent (Jira/Confluence), pencil (디자인 편집) |
+| **MCP 서버 (글로벌)** | atlassian-agent (Jira/Confluence), firecrawl-mcp (웹 검색/스크래핑), pencil (디자인 편집) |
+| **MCP 서버 (프로젝트 전용, `~/.claude.json`)** | `~/Downloads/resume`: gmail, gmail-mcp, browser-fetch · `~/vc/vc-monorepo`: figma, figma-mcp · `~/project/oncall-bot`: atlassian-agent |
+| **MCP 서버 (커밋용, `.mcp.json`)** | vc-monorepo: datadog · everything-claude-code: github/context7/exa/memory/playwright/sequential-thinking |
+| **프로젝트 스코프 설정** | `<repo>/.claude/settings.json` (팀 공유) + `settings.local.json` (개인) - hooks/permissions를 프로젝트별로. 예: auto-card-news-ver2는 git push 전 pytest 알림, vc-smart-simulator는 Bash 전 lint 실행 |
 | **상태바** | 모델/git/컨텍스트 사용률/예상 비용/토큰 실시간 표시 |
 | **Stop Hook** | 컨텍스트 85% 초과 시 /half-clone 안내 |
 | **커스텀 커맨드 (5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
