@@ -448,6 +448,44 @@ This setup is built on top of these community repos. Clone them for additional a
 - `content/` - guides on agentic coding spectrum, 10 tips for newer users
 - `system-prompt/` - version-specific system prompt patches
 
+### External references — when to reach for them
+
+Not synced into this repo. Bookmarked for the specific situation in the right column.
+
+**Building your own agent harness**
+
+| Repo | When to use |
+|------|-------------|
+| [shareAI-lab/learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) | Before forking anything — 20-lesson walkthrough of CC-style harness internals |
+| [ljw1004/mini_agent](https://github.com/ljw1004/mini_agent) | Absolute floor harness skeleton (~280 LOC agent + 400 tools + 1200 prompts) |
+| [earendil-works/pi](https://github.com/earendil-works/pi) | Minimal terminal harness with "lazy skills" (sub-1k-token system prompt, 4 core tools). Best minimal-but-serious base |
+| [sst/opencode](https://github.com/sst/opencode) | Production-grade TS/Bun harness — LSP, multi-session, 75+ providers, plan/build agents. Read for architecture |
+| [charmbracelet/crush](https://github.com/charmbracelet/crush) | Go-based TUI agent (LSP + MCP + TUI cleanly separated). Use if your harness should be in Go |
+
+**LLM internals + agent patterns** (Karpathy)
+
+| Repo | When to use |
+|------|-------------|
+| [karpathy/nanochat](https://github.com/karpathy/nanochat) | Learn end-to-end LLM training ($100 ChatGPT clone). Successor to nanoGPT |
+| [karpathy/autoresearch](https://github.com/karpathy/autoresearch) | Reference for autonomous "edit → train → keep-or-revert" loops. Pattern generalizes beyond ML |
+| [karpathy/llm-council](https://github.com/karpathy/llm-council) | Multi-model arbitration (cross-review + Chairman synthesis). For subagent voting pipelines |
+| [karpathy/rustbpe](https://github.com/karpathy/rustbpe) | Roll your own BPE tokenizer in Rust |
+
+*Avoid*: `karpathy/nanoGPT` (Karpathy himself deprecated it in favor of nanochat). `karpathy/llm.c` stalled since 2024-08.
+
+**Extending the CC setup itself**
+
+| Repo | When to use |
+|------|-------------|
+| [disler/claude-code-hooks-mastery](https://github.com/disler/claude-code-hooks-mastery) | Reference for all 12+ hook lifecycle events with runnable examples |
+| [disler/claude-code-hooks-multi-agent-observability](https://github.com/disler/claude-code-hooks-multi-agent-observability) | Real-time dashboard when running multiple agents simultaneously. This setup has no observability layer yet |
+| [davila7/claude-code-templates](https://github.com/davila7/claude-code-templates) | CLI for configuring + monitoring CC with templates, hooks, MCPs |
+| [wshobson/agents](https://github.com/wshobson/agents) | Cross-harness plugins (works in CC + Codex + Cursor + OpenCode + Gemini CLI + Copilot). 83 plugins / 191 agents / 155 skills / 102 commands from one Markdown source |
+| [poshan0126/dotclaude](https://github.com/poshan0126/dotclaude) | Compare `.claude/` layout — has code/security/perf/doc reviewer plugins worth checking against this setup |
+| [shareAI-lab/mini-claude-code](https://github.com/shareAI-lab/mini-claude-code) | 5-version progressive tutorial (~1100 LOC). For teaching colleagues how CC actually works |
+
+> ⚠️ Star counts and last-commit dates in these descriptions are from a 2026-06-01 research snapshot. Verify on GitHub before committing to a fork.
+
 ---
 
 ## Prerequisites
@@ -538,3 +576,16 @@ bash setup.sh
 | [hesreallyhim/awesome-claude-code](https://github.com/hesreallyhim/awesome-claude-code) | 32k stars. 200+ 도구 모음: 오케스트레이터, 사용량 모니터, IDE 통합, 보안 훅, 설정 관리자 |
 
 더 많은 agents/skills/hooks/configs가 필요하면 위 레포를 클론해서 골라 쓰면 됨.
+
+### 외부 레퍼런스 — 상황별
+
+직접 sync하지 않고 북마크. 자세한 설명은 [영문 "External references" 섹션](#external-references--when-to-reach-for-them) 참고.
+
+| 상황 | 레포 |
+|------|------|
+| 하네스 학습 → 미니멀 → 진지하게 | [learn-claude-code](https://github.com/shareAI-lab/learn-claude-code) → [mini_agent](https://github.com/ljw1004/mini_agent) → [earendil-works/pi](https://github.com/earendil-works/pi) → [sst/opencode](https://github.com/sst/opencode), Go면 [crush](https://github.com/charmbracelet/crush) |
+| LLM 내부/패턴 학습 (Karpathy) | [nanochat](https://github.com/karpathy/nanochat), [autoresearch](https://github.com/karpathy/autoresearch), [llm-council](https://github.com/karpathy/llm-council), [rustbpe](https://github.com/karpathy/rustbpe) |
+| CC 훅·옵저버빌리티·템플릿 | [disler/hooks-mastery](https://github.com/disler/claude-code-hooks-mastery), [disler/observability](https://github.com/disler/claude-code-hooks-multi-agent-observability), [davila7/templates](https://github.com/davila7/claude-code-templates) |
+| 크로스 하네스 plugin | [wshobson/agents](https://github.com/wshobson/agents) |
+| `.claude/` 레이아웃 비교 | [poshan0126/dotclaude](https://github.com/poshan0126/dotclaude) |
+| 동료 교육 | [mini-claude-code](https://github.com/shareAI-lab/mini-claude-code) |
