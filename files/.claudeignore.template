@@ -1,0 +1,57 @@
+# .claudeignore template — copy to project root to reduce token waste.
+# Works like .gitignore. Anything matched is invisible to Claude Code's
+# Read/Grep/Glob — prevents accidental loading of huge generated files.
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Build artifacts
+dist/
+build/
+out/
+.next/
+.nuxt/
+.turbo/
+target/
+*.egg-info/
+
+# Lock files (regenerable, often huge diffs)
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+poetry.lock
+uv.lock
+Cargo.lock
+
+# Minified / source maps
+*.min.js
+*.min.css
+*.map
+
+# Logs and coverage
+*.log
+logs/
+coverage/
+.nyc_output/
+htmlcov/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Secrets — never let Claude see these even by accident
+.env
+.env.*
+!.env.example
+*.pem
+*.key
