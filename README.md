@@ -14,6 +14,7 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **Automatic context overflow warning** - suggests `/half-clone` when context hits 85%
 - **Auto-compact at 60%** - proactive context compression (was 80%, tightened 2026-06 for prompt-cache friendliness)
 - **`.claudeignore` template** - drop into any project to block `node_modules`, lock files, build artifacts
+- **LLM-era reference docs** ([docs/](./docs/)) - skill-building harness research + guardrail hook recipes
 - **40+ pre-approved permissions** - git, npm, python, docker, gh CLI commands auto-allowed (no popup fatigue)
 - **Dangerous command deny list** - `rm -rf`, `git push --force`, `git reset --hard` etc. blocked
 - **5 custom slash commands** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
@@ -83,6 +84,24 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
 └── skills/                       # Custom skills (add your own here)
 ```
+
+```
+# Reference docs (not copied to ~/.claude — read-only research notes)
+docs/
+├── skills-to-develop.md          # 4 skill categories × repos/tools for LLM-era engineering
+└── guardrails.md                 # 8 Claude Code hook recipes (secret scan, file-size, padded room, etc.)
+```
+
+---
+
+## LLM-era reference docs
+
+Research notes that extend this setup based on [Reindeer's LLM engineering article](https://news.hada.io/topic?id=30060). Live in `docs/`, not deployed by `setup.sh`.
+
+| Doc | Contents |
+|-----|----------|
+| [`docs/skills-to-develop.md`](./docs/skills-to-develop.md) | 4 skill categories an engineer must build in the LLM era — domain modeling, eval/test design, context management, code review. Each has 3-4 vetted repos with concrete Claude Code integration paths (skill / hook / CLAUDE.md / command). Dedups against this setup's existing plugins, commands, agents, and the token-optimization layer from commit `1a9bc74`. |
+| [`docs/guardrails.md`](./docs/guardrails.md) | 8 hooks to upgrade this setup from prose rules → enforced gates: secret scanner, ruff+mypy auto-pass, file-size hard limit, padded-room path guard, verification gate on Stop, ast-grep immutability lint, context-hygiene injector, and `.claudeignore`-missing detector. Each includes a working `settings.json` snippet, reference repo, and gotcha notes (exit code 2 = block, `stop_hook_active` infinite-loop guard, etc.). Staged adoption order included. |
 
 ---
 
@@ -634,6 +653,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **컨텍스트 오버플로우 자동 경고** - 85% 도달 시 `/half-clone` 안내
 - **60%에서 자동 컨텍스트 압축** - `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` (프롬프트 캐시 유지 목적, 2026-06 80%→60% 조정)
 - **`.claudeignore` 템플릿** - 프로젝트별로 복사하면 `node_modules`, lock 파일, 빌드 산출물 자동 차단
+- **LLM 시대 참고 문서** ([docs/](./docs/)) - 능력 키우기용 도구 리서치 + 가드레일 hook 레시피
 - **40+ 퍼미션 사전 허용** - git, npm, python, docker, gh 등 팝업 없이 자동 승인
 - **위험 명령어 차단** - `rm -rf`, `git push --force`, `git reset --hard` 등 deny 처리
 - **커스텀 커맨드 9개** - 자체 5개 (`/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`) + wshobson 4개 (`/slo-implement`, `/sql-migrations`, `/incident-response`, `/security-sast`)
@@ -677,6 +697,17 @@ bash setup.sh
 | **컨텍스트 (3개)** | dev (코드 우선), review (보안/품질), research (조사 우선) |
 | **Shell 별칭** | `c`, `ch`, `--fs` 단축키 |
 | **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, 스킬 빌딩 가이드, 토큰 최적화, Gotchas |
+
+## LLM 시대 참고 문서
+
+[Reindeer의 LLM 엔지니어링 글](https://news.hada.io/topic?id=30060)을 바탕으로 이 setup을 확장하는 리서치 노트. `docs/`에 위치, `setup.sh`로 배포 안 됨.
+
+| 문서 | 내용 |
+|------|------|
+| [`docs/skills-to-develop.md`](./docs/skills-to-develop.md) | LLM 시대 엔지니어가 키워야 할 4가지 능력(도메인 모델링, eval/테스트 설계, 컨텍스트 관리, 코드 리뷰) × 카테고리별 3-4개 검증된 repo + Claude Code 통합 방법(skill/hook/CLAUDE.md/command). 본 setup의 기존 플러그인·커맨드·에이전트 및 commit `1a9bc74` 토큰 최적화 레이어와 dedup. |
+| [`docs/guardrails.md`](./docs/guardrails.md) | 본 setup을 "prose 룰 → 강제 게이트"로 업그레이드하는 8개 hook 레시피: 시크릿 스캐너, ruff+mypy 자동 패스, 파일 크기 한계, padded-room 경로 가드, Stop 검증 게이트, ast-grep 불변성 린트, 컨텍스트 인젝터, `.claudeignore` 누락 감지. 각 hook마다 `settings.json` 스니펫·참조 repo·gotcha(exit 2 차단 / `stop_hook_active` 무한루프 방지 등) 포함. 단계 도입 순서 제시. |
+
+---
 
 ## 토큰 최적화
 
