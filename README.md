@@ -12,7 +12,8 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 
 - **Real-time cost & context tracking** in the status line (model, git branch, token usage, estimated cost)
 - **Automatic context overflow warning** - suggests `/half-clone` when context hits 85%
-- **Auto-compact at 80%** - automatically compresses context before it gets too large
+- **Auto-compact at 60%** - proactive context compression (was 80%, tightened 2026-06 for prompt-cache friendliness)
+- **`.claudeignore` template** - drop into any project to block `node_modules`, lock files, build artifacts
 - **40+ pre-approved permissions** - git, npm, python, docker, gh CLI commands auto-allowed (no popup fatigue)
 - **Dangerous command deny list** - `rm -rf`, `git push --force`, `git reset --hard` etc. blocked
 - **5 custom slash commands** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
@@ -45,6 +46,8 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 ├── statusline-command.sh         # Status bar script
 ├── scripts/
 │   └── check-context.sh          # Stop hook: warns at 85% context
+# (also in this repo, but NOT copied to ~/.claude — per-project use)
+# files/.claudeignore.template    # Copy into your project root to block heavy paths
 ├── commands/                     # Custom slash commands
 │   ├── review.md                 # /review - pre-commit quality & security check
 │   ├── quick-commit.md           # /quick-commit - stage, review, commit
@@ -276,7 +279,7 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 | Setting | What it does |
 |---------|--------------|
 | `ENABLE_TOOL_SEARCH` | Enables deferred tool search |
-| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=80` | Auto-compress context at 80% usage |
+| `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60` | Auto-compress context at 60% usage (proactive — keeps prompt cache fresh) |
 | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Token budget the % is calculated against (400K window) |
 | `permissions.allow` (40+ commands) | Auto-allow git, npm, python, docker, gh, file ops, MCP servers |
 | `permissions.deny` (6 commands) | Block `rm -rf`, `git push --force`, `git reset --hard`, `docker rm/rmi`, `kubectl delete` |
@@ -308,6 +311,67 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 - If context usage **exceeds 85%** of 1M tokens, blocks the stop and suggests `/half-clone`
 - Prevents infinite loops with `stop_hook_active` guard
 - Source: adapted from [claude-code-tips](https://github.com/ykdojo/claude-code-tips/blob/main/scripts/check-context.sh)
+
+---
+
+## Token optimization
+
+Cost-cutting tactics baked into this setup (and how to use them). Prompt caching is everything — keep static content stable and frontloaded, and the API skips reprocessing 90% of every request.
+
+### Applied automatically
+
+| Lever | Setting | Why |
+|-------|---------|-----|
+| **Proactive auto-compact** | `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60` | Compresses at 60% instead of 95% default. Keeps requests light, cache hits high. |
+| **Auto-compact window** | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Calculates % against a 400K window — friendlier for 1M-context Opus 4.8 sessions. |
+| **Stop-hook context guard** | `scripts/check-context.sh` | At 85%, blocks stop and prompts `/half-clone` before the next turn balloons. |
+| **Pre-approved permissions** | `settings.json` allow list | No back-and-forth confirmation tokens. |
+| **RTK CLI proxy** | Global `~/.claude/hooks/rtk-rewrite.sh` (not in this repo — install separately) | Compresses verbose CLI output 60–90% before it reaches the context. `git status` 80%, `cargo test` 91% savings measured. |
+
+### Per-project: drop `.claudeignore`
+
+```bash
+cp ~/claude-code-setup/files/.claudeignore.template <your-project>/.claudeignore
+```
+
+Blocks `node_modules/`, `dist/`, build artifacts, lock files, minified JS, logs, secrets — Claude can't accidentally Read or Grep them. Saves 1000s of tokens on repos with large generated trees.
+
+### Behavioral rules (in `CLAUDE.md`)
+
+The global `CLAUDE.md` now codifies:
+
+- `/compact` at ~50% (auto-compact at 60% is the backstop)
+- `/half-clone` or `/handoff` past 80%
+- One topic per conversation — switching topics nukes the prompt cache
+- Cache TTL = 5 min; long idle pauses cost more than continuous work
+- No mid-phase model switching (cache invalidates)
+- Model mix: **Haiku 4.5** for mechanical work, **Sonnet 4.6** default, **Opus 4.8** for hard reasoning only
+- Cap tool output — `Read` with `limit`/`offset`, `grep` with filters, never `cat` huge files
+- `/mcp` to disable unused servers (each adds 100–500 tokens per turn)
+- Offload exploration to the Explore agent — it reads 20 files, returns a summary only
+
+### Why 60% (not 50, not 80)
+
+50% leaves no headroom for a long agent turn. 80% lets the cache bloat with stale messages that get summarized anyway. 60% is the sweet spot where the auto-compact runs early enough to keep the static prefix small but late enough that you don't lose recent working memory.
+
+### What this saves (rough numbers)
+
+- `.claudeignore` on a typical Node monorepo: ~3,000–8,000 tokens saved per Glob/Grep
+- Auto-compact at 60% vs 80%: ~30% fewer tokens per long session
+- Sonnet 4.6 vs Opus 4.8 for routine edits: **5× cheaper per token**
+- Prompt caching on a stable system prompt: **90% discount** on cached prefix
+
+### Further reading (June 2026)
+
+| Resource | Why |
+|----------|-----|
+| [Lessons from building Claude Code: Prompt caching is everything](https://claude.com/blog/lessons-from-building-claude-code-prompt-caching-is-everything) | Anthropic's own playbook |
+| [Manage costs effectively](https://code.claude.com/docs/en/costs) | Official cost-management doc |
+| [Prompt caching - Claude API Docs](https://platform.claude.com/docs/en/build-with-claude/prompt-caching) | TTL, structure, invalidation rules |
+| [rtk-ai/rtk](https://github.com/rtk-ai/rtk) | Rust Token Killer — CLI output compressor |
+| [drona23/claude-token-efficient](https://github.com/drona23/claude-token-efficient) | Drop-in CLAUDE.md for terser responses |
+| [nadimtuhin/claude-token-optimizer](https://github.com/nadimtuhin/claude-token-optimizer) | Reusable setup prompts, 90% savings claim |
+| [I saved 10M tokens (89%) on Claude Code](https://github.com/Kilo-Org/kilocode/discussions/5848) | RTK case study |
 
 ---
 
@@ -568,7 +632,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 - **실시간 비용 & 컨텍스트 추적** - 상태바에 모델, git 브랜치, 토큰 사용량, 예상 비용 표시
 - **컨텍스트 오버플로우 자동 경고** - 85% 도달 시 `/half-clone` 안내
-- **80%에서 자동 컨텍스트 압축** - `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`
+- **60%에서 자동 컨텍스트 압축** - `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` (프롬프트 캐시 유지 목적, 2026-06 80%→60% 조정)
+- **`.claudeignore` 템플릿** - 프로젝트별로 복사하면 `node_modules`, lock 파일, 빌드 산출물 자동 차단
 - **40+ 퍼미션 사전 허용** - git, npm, python, docker, gh 등 팝업 없이 자동 승인
 - **위험 명령어 차단** - `rm -rf`, `git push --force`, `git reset --hard` 등 deny 처리
 - **커스텀 커맨드 9개** - 자체 5개 (`/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`) + wshobson 4개 (`/slo-implement`, `/sql-migrations`, `/incident-response`, `/security-sast`)
@@ -611,7 +676,18 @@ bash setup.sh
 | **React 규칙 (5개)** | 코딩 스타일, hooks 규율, 패턴(composition/context), 보안(XSS/sanitization), 테스트(RTL/MSW) |
 | **컨텍스트 (3개)** | dev (코드 우선), review (보안/품질), research (조사 우선) |
 | **Shell 별칭** | `c`, `ch`, `--fs` 단축키 |
-| **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, 스킬 빌딩 가이드, Gotchas |
+| **Global CLAUDE.md** | bash 분리, 불변성, 시크릿 금지, 검증 필수, 계획 우선, 서브에이전트 활용, 스킬 빌딩 가이드, 토큰 최적화, Gotchas |
+
+## 토큰 최적화
+
+자세한 내용은 [영문 Token optimization 섹션](#token-optimization) 참고. 핵심만:
+
+- **자동 적용**: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60`(2026-06 80→60 하향), 85% Stop hook, 퍼미션 사전 허용, RTK CLI 프록시
+- **프로젝트별 적용**: `cp files/.claudeignore.template <project>/.claudeignore` — `node_modules`, lock, 빌드 산출물 차단
+- **행동 규칙** (CLAUDE.md): `/compact`는 50%에서 능동적으로, 80% 넘으면 `/half-clone`/`/handoff`, 한 대화 한 주제 (캐시 유지), 5분 캐시 TTL(연속 작업 유리), 페이즈 중 모델 스위치 금지
+- **모델 믹스**: Haiku 4.5 (단순) / Sonnet 4.6 (기본) / Opus 4.8 (어려운 추론만)
+- **MCP 다이어트**: 안 쓰는 서버는 `/mcp`로 비활성화 (매 턴 100~500 토큰)
+- **참고 레포**: [rtk-ai/rtk](https://github.com/rtk-ai/rtk) (CLI 출력 60~90% 압축), [claude-token-efficient](https://github.com/drona23/claude-token-efficient), [claude-token-optimizer](https://github.com/nadimtuhin/claude-token-optimizer)
 
 ## 출처 레포
 

@@ -39,12 +39,17 @@
 - Break subtasks small enough to complete in under 50% context
 - Use `/parallel-plan` to identify parallelizable work
 
-## Context Management
-- Run `/compact` proactively at ~50% context usage, don't wait for 80%
-- When context usage exceeds 80%, consider using /compact or /half-clone
-- Keep conversations focused on single topics
-- Use `/handoff` to create handoff docs for multi-session work
-- Offload research and exploration to subagents to preserve main context
+## Context Management & Token Optimization
+- Run `/compact` proactively at ~50% context usage (auto-compact backstop set to 60%)
+- When context usage exceeds 80%, use `/half-clone` or `/handoff` instead
+- Keep conversations focused on single topics — switching topics nukes prompt cache
+- Offload exploration to Explore agent → reads 20 files, returns summary only
+- Prompt cache TTL is 5 min — long idle pauses cost more than continuous work
+- Don't switch models mid-phase (cache invalidates); pick model per phase
+- Use Haiku 4.5 for cheap mechanical work, Sonnet for default, Opus 4.8 only for hard reasoning
+- Cap tool output — never `cat`/`tail` large files; use `Read` with `limit`/`offset` or `grep` with filters
+- Disable unused MCP servers — each adds 100~500 tokens per turn (`/mcp` to manage)
+- Per-project: drop a `.claudeignore` to block `node_modules`, `dist`, `build`, `*.lock`, `__pycache__`
 
 ## Skill Building
 - When building custom skills, use `skill-creator` skill first for scaffolding
