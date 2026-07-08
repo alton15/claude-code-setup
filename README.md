@@ -21,6 +21,7 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **Always-on coding rules** - immutability, security checks, TDD, conventional commits
 - **Python-specific rules** that activate only on `*.py` files (PEP 8, pytest, bandit, ruff)
 - **4 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, etc.)
+- **21 design skills** - [impeccable](https://github.com/pbakaus/impeccable) suite (`/frontend-design`, `/animate`, `/polish`, `/audit`…) for high-quality frontend UI
 - **Shell shortcuts** - `c` for claude, `ch` for chrome mode, `--fs` for fork-session
 - **Mode-based contexts** - switch between dev/review/research mindsets
 
@@ -82,7 +83,7 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── database-admin.md         # Cloud Postgres ops, HA/DR, performance
 │   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring
 │   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
-└── skills/                       # Custom skills (add your own here)
+└── skills/                       # 21 impeccable design skills (animate, polish, audit…) + add your own
 ```
 
 ```
@@ -111,7 +112,7 @@ Four plugins provide structured development workflows.
 
 | Plugin | Marketplace | What it does |
 |--------|-------------|--------------|
-| **superpowers** | [obra/superpowers](https://github.com/obra/superpowers) | Core workflows: brainstorming, TDD, debugging, code review, planning, parallel agents. Includes [impeccable](https://github.com/pbakaus/impeccable) design skills for high-quality frontend UI. |
+| **superpowers** | [obra/superpowers](https://github.com/obra/superpowers) | Core workflows: brainstorming, TDD, debugging, code review, planning, parallel agents. |
 | **dx** | [ykdojo](https://github.com/ykdojo/claude-code-tips) | Context management: /clone, /half-clone, /handoff, /gha, /review-claudemd |
 | **cli-anything** | [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | Auto-connect CLI tools |
 | **vercel** | anthropics/claude-plugins-official | Vercel + AI SDK: deploy/env/CI-CD skills, Next.js/AI SDK guidance, AI-architect & deployment-expert agents |
@@ -135,7 +136,7 @@ Four plugins provide structured development workflows.
 | `/finish` | Wrap up a development branch |
 | `/skill-create` | Create new skills |
 
-**From superpowers - [impeccable](https://github.com/pbakaus/impeccable) design skills:**
+**Design skills — [impeccable](https://github.com/pbakaus/impeccable) by [@pbakaus](https://github.com/pbakaus)** (vendored in [`files/skills/`](./files/skills/), installed to `~/.claude/skills/` by `setup.sh`):
 
 | Command | Purpose |
 |---------|---------|

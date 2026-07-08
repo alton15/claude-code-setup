@@ -66,10 +66,23 @@ fi
 
 # 8. Copy skills (if any exist)
 echo "[8/9] Installing skills..."
+# Top-level single-file skills (name.md)
 if ls "$SCRIPT_DIR/files/skills/"*.md 1>/dev/null 2>&1; then
     cp "$SCRIPT_DIR/files/skills/"*.md "$CLAUDE_DIR/skills/"
+fi
+# Folder skills (name/SKILL.md) — e.g. the impeccable design suite
+SKILL_DIRS=0
+for skill_dir in "$SCRIPT_DIR/files/skills/"*/; do
+    [ -d "$skill_dir" ] || continue
+    skill_name=$(basename "$skill_dir")
+    # Explicit dest name: macOS `cp -R src/ dest/` copies contents, not the dir itself
+    cp -R "$skill_dir" "$CLAUDE_DIR/skills/$skill_name"
+    SKILL_DIRS=$((SKILL_DIRS + 1))
+done
+if [ "$SKILL_DIRS" -gt 0 ]; then
+    echo "  Installed: $SKILL_DIRS folder skills"
 else
-    echo "  No custom skills to install"
+    echo "  No folder skills to install"
 fi
 
 # 8b. Copy agents
