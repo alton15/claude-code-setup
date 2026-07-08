@@ -110,6 +110,7 @@ echo ""
 echo "  claude plugin install superpowers@claude-plugins-official"
 echo "  claude plugin install dx@ykdojo"
 echo "  claude plugin install cli-anything@cli-anything"
+echo "  claude plugin install vercel@claude-plugins-official"
 echo ""
 
 # 10. Reference repos

@@ -20,7 +20,7 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **5 custom slash commands** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
 - **Always-on coding rules** - immutability, security checks, TDD, conventional commits
 - **Python-specific rules** that activate only on `*.py` files (PEP 8, pytest, bandit, ruff)
-- **3 plugins** for structured workflows (brainstorming, planning, debugging, code review, etc.)
+- **4 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, etc.)
 - **Shell shortcuts** - `c` for claude, `ch` for chrome mode, `--fs` for fork-session
 - **Mode-based contexts** - switch between dev/review/research mindsets
 
@@ -107,13 +107,14 @@ Research notes that extend this setup based on [Reindeer's LLM engineering artic
 
 ## Plugins
 
-Three plugins provide structured development workflows.
+Four plugins provide structured development workflows.
 
 | Plugin | Marketplace | What it does |
 |--------|-------------|--------------|
 | **superpowers** | [obra/superpowers](https://github.com/obra/superpowers) | Core workflows: brainstorming, TDD, debugging, code review, planning, parallel agents. Includes [impeccable](https://github.com/pbakaus/impeccable) design skills for high-quality frontend UI. |
 | **dx** | [ykdojo](https://github.com/ykdojo/claude-code-tips) | Context management: /clone, /half-clone, /handoff, /gha, /review-claudemd |
 | **cli-anything** | [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | Auto-connect CLI tools |
+| **vercel** | anthropics/claude-plugins-official | Vercel + AI SDK: deploy/env/CI-CD skills, Next.js/AI SDK guidance, AI-architect & deployment-expert agents |
 
 ### Available slash commands
 
@@ -183,6 +184,7 @@ claude plugin marketplace add HKUDS/CLI-Anything
 claude plugin install superpowers@claude-plugins-official
 claude plugin install dx@ykdojo
 claude plugin install cli-anything@cli-anything
+claude plugin install vercel@claude-plugins-official
 ```
 
 ---
@@ -303,7 +305,7 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 | `permissions.allow` (40+ commands) | Auto-allow git, npm, python, docker, gh, file ops, MCP servers |
 | `permissions.deny` (6 commands) | Block `rm -rf`, `git push --force`, `git reset --hard`, `docker rm/rmi`, `kubectl delete` |
 | `statusLine` | Custom bash script showing model/git/context/cost |
-| `enabledPlugins` | superpowers + dx + cli-anything |
+| `enabledPlugins` | superpowers + dx + cli-anything + vercel |
 | `skipDangerousModePermissionPrompt` | Skip dangerous mode confirmation |
 | `hooks.Stop` | Run context check on every conversation stop |
 
