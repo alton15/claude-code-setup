@@ -67,7 +67,8 @@
   "enabledPlugins": {
     "superpowers@claude-plugins-official": true,
     "dx@ykdojo": true,
-    "cli-anything@cli-anything": true
+    "cli-anything@cli-anything": true,
+    "vercel@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "cli-anything": {
