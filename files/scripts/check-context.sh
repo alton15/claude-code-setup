@@ -18,7 +18,7 @@
 # }
 #
 # max_context is set to 1,000,000 to match the 1M context window models
-# (Claude Opus 4.7 [1M], Sonnet 4.6 [1M]). Drop to 200000 for standard 200K
+# (Claude Opus 4.8 [1M], Sonnet 4.6 [1M]). Drop to 200000 for standard 200K
 # context models.
 
 input=$(cat)

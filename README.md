@@ -136,7 +136,7 @@ Four plugins provide structured development workflows.
 | `/finish` | Wrap up a development branch |
 | `/skill-create` | Create new skills |
 
-**Design skills — [impeccable](https://github.com/pbakaus/impeccable) by [@pbakaus](https://github.com/pbakaus)** (vendored in [`files/skills/`](./files/skills/), installed to `~/.claude/skills/` by `setup.sh`):
+**Design skills — [impeccable](https://github.com/pbakaus/impeccable) by [@pbakaus](https://github.com/pbakaus)** (vendored in [`files/skills/`](./files/skills/), installed to `~/.claude/skills/` by `setup.sh`; attribution in [`files/skills/NOTICE.md`](./files/skills/NOTICE.md)):
 
 | Command | Purpose |
 |---------|---------|
@@ -187,6 +187,17 @@ claude plugin install dx@ykdojo
 claude plugin install cli-anything@cli-anything
 claude plugin install vercel@claude-plugins-official
 ```
+
+**Keeping plugins fresh** — plugins install as pinned versions, so refresh them periodically:
+
+```bash
+claude plugin update superpowers@claude-plugins-official
+claude plugin update dx@ykdojo
+claude plugin update cli-anything@cli-anything
+claude plugin update vercel@claude-plugins-official
+```
+
+Last refreshed 2026-08-11: superpowers 6.2.0, dx 0.14.24, cli-anything (latest), vercel 0.45.1.
 
 ---
 
