@@ -47,7 +47,8 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 ├── settings.json                 # Plugins, hooks, statusline, permissions
 ├── statusline-command.sh         # Status bar script
 ├── scripts/
-│   └── check-context.sh          # Stop hook: warns at 85% context
+│   ├── check-context.sh          # Stop hook: warns at 85% context
+│   └── extract-voice.py          # Mines past transcripts for my own writing samples
 # (also in this repo, but NOT copied to ~/.claude — per-project use)
 # files/.claudeignore.template    # Copy into your project root to block heavy paths
 ├── commands/                     # Custom slash commands
@@ -83,7 +84,24 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── database-admin.md         # Cloud Postgres ops, HA/DR, performance
 │   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring
 │   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
-└── skills/                       # 21 impeccable design skills (animate, polish, audit…) + add your own
+└── skills/
+    ├── my-voice/                 # Writes ticket/PR comments in my own voice
+    └── …                         # 21 impeccable design skills (animate, polish, audit…)
+```
+
+### `my-voice`
+
+Jira 티켓 댓글, PR 코멘트, 슬랙 공유 글을 내 말투로 뽑는다. "티켓에 답글로 남겨줘",
+"박정환 태그해서 공유해줘" 같은 요청에 걸린다.
+
+`scripts/extract-voice.py`가 `~/.claude/projects/**/*.jsonl`에서 내가 실제로 타이핑한
+메시지만 골라낸다 (tool result, compaction 요약, system-reminder, 슬래시 커맨드 제외).
+거기서 뽑은 문장 구조·어휘·존댓말 어미 규칙이 `references/style.md`에 들어 있다.
+
+말투가 변했다 싶으면 재추출해서 style.md를 갱신하면 된다:
+
+```bash
+python3 ~/.claude/scripts/extract-voice.py -o /tmp/corpus.json --text /tmp/corpus.txt
 ```
 
 ```

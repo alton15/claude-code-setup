@@ -41,9 +41,12 @@ cp "$SCRIPT_DIR/files/settings.json" "$CLAUDE_DIR/settings.json"
 # 4. Copy scripts
 echo "[4/9] Installing scripts..."
 cp "$SCRIPT_DIR/files/statusline-command.sh" "$CLAUDE_DIR/statusline-command.sh"
-cp "$SCRIPT_DIR/files/scripts/check-context.sh" "$CLAUDE_DIR/scripts/check-context.sh"
 chmod +x "$CLAUDE_DIR/statusline-command.sh"
-chmod +x "$CLAUDE_DIR/scripts/check-context.sh"
+for script in "$SCRIPT_DIR/files/scripts/"*.sh "$SCRIPT_DIR/files/scripts/"*.py; do
+    [ -f "$script" ] || continue
+    cp "$script" "$CLAUDE_DIR/scripts/$(basename "$script")"
+    chmod +x "$CLAUDE_DIR/scripts/$(basename "$script")"
+done
 
 # 5. Copy rules
 echo "[5/9] Installing rules..."
