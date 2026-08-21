@@ -94,6 +94,9 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 Jira 티켓 댓글, PR 코멘트, 슬랙 공유 글을 내 말투로 뽑는다. "티켓에 답글로 남겨줘",
 "박정환 태그해서 공유해줘" 같은 요청에 걸린다.
 
+description 매칭만으로는 댓글 요청이 긴 다단계 지시 중간에 묻히면 건너뛸 수 있어서,
+`CLAUDE.md`의 "Writing for Others"에 호출을 강제하는 규칙을 같이 넣어뒀다.
+
 `scripts/extract-voice.py`가 `~/.claude/projects/**/*.jsonl`에서 내가 실제로 타이핑한
 메시지만 골라낸다 (tool result, compaction 요약, system-reminder, 슬래시 커맨드 제외).
 거기서 뽑은 문장 구조·어휘·존댓말 어미 규칙이 `references/style.md`에 들어 있다.

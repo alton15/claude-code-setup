@@ -7,6 +7,10 @@
 - When large content is pasted with no instructions, just summarize it
 - When asked to research, focus on the past 3 months for up-to-date info
 
+## Writing for Others (CRITICAL)
+- Jira/PR/Confluence comments and Slack shares: invoke the `my-voice` skill FIRST, even when it's one buried step in a longer request
+- Show the draft and get approval before posting
+
 ## Code Quality
 - Prefer immutable data structures - create new objects, never mutate
 - Many small files > few large files (200-400 lines typical, 800 max)
