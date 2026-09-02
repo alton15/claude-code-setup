@@ -150,3 +150,8 @@ echo "  - For each project, copy the .claudeignore template to reduce token wast
 echo "      cp $SCRIPT_DIR/files/.claudeignore.template <your-project>/.claudeignore"
 echo "  - Disable unused MCP servers with '/mcp' (each adds 100~500 tokens/turn)"
 echo "  - Mix models per phase: Haiku 4.5 (cheap), Sonnet (default), Opus 4.8 (hard reasoning)"
+echo ""
+echo "=== Design context (optional) ==="
+echo "  - For a new project's design system, copy the .impeccable.md example as a starting skeleton"
+echo "    (it is one real project's answers, not a global default — replace every section):"
+echo "      cp $SCRIPT_DIR/files/.impeccable.md.template <your-project>/.impeccable.md"

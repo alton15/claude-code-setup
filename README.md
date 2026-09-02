@@ -22,6 +22,7 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **Python-specific rules** that activate only on `*.py` files (PEP 8, pytest, bandit, ruff)
 - **4 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, etc.)
 - **21 design skills** - [impeccable](https://github.com/pbakaus/impeccable) suite (`/frontend-design`, `/animate`, `/polish`, `/audit`…) for high-quality frontend UI
+- **4 accessibility agents** - `contrast-master`, `design-system-auditor`, `playwright-scanner`, `playwright-verifier` from [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents) — the ones that actually drive a browser or compute a contrast ratio, unlike the text-only design skills above
 - **Shell shortcuts** - `c` for claude, `ch` for chrome mode, `--fs` for fork-session
 - **Mode-based contexts** - switch between dev/review/research mindsets
 
@@ -51,6 +52,7 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   └── extract-voice.py          # Mines past transcripts for my own writing samples
 # (also in this repo, but NOT copied to ~/.claude — per-project use)
 # files/.claudeignore.template    # Copy into your project root to block heavy paths
+# files/.impeccable.md.template   # Example Design Context doc (one real project's answers) — copy + rewrite per project
 ├── commands/                     # Custom slash commands
 │   ├── review.md                 # /review - pre-commit quality & security check
 │   ├── quick-commit.md           # /quick-commit - stage, review, commit
@@ -79,11 +81,16 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── dev.md                    # Code first, explain later
 │   ├── review.md                 # Security/quality checklist
 │   └── research.md               # Investigate before coding
-├── agents/                       # Specialized subagents (from wshobson/agents)
-│   ├── observability-engineer.md # Prometheus/Grafana/OTel/SLO design
-│   ├── database-admin.md         # Cloud Postgres ops, HA/DR, performance
-│   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring
-│   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
+├── agents/                       # Specialized subagents
+│   ├── observability-engineer.md # Prometheus/Grafana/OTel/SLO design (wshobson/agents)
+│   ├── database-admin.md         # Cloud Postgres ops, HA/DR, performance (wshobson/agents)
+│   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring (wshobson/agents)
+│   ├── threat-modeling-expert.md # STRIDE/PASTA, attack trees, opus-tier (wshobson/agents)
+│   ├── contrast-master.md        # WCAG contrast ratios via runnable formula (accessibility-agents)
+│   ├── design-system-auditor.md  # Contrast-audits Tailwind/CSS-var/Style Dictionary tokens (accessibility-agents)
+│   ├── playwright-scanner.md     # Drives real Playwright + axe-core against live pages (accessibility-agents)
+│   ├── playwright-verifier.md    # Verifies a fix via targeted axe-core assertion (accessibility-agents)
+│   └── NOTICE.md                 # Attribution for vendored agents above
 └── skills/
     ├── my-voice/                 # Writes ticket/PR comments in my own voice (Korean)
     ├── stop-slop/                # Strips AI tells from English prose (vendored)
@@ -199,6 +206,13 @@ Four plugins provide structured development workflows.
 | `/clarify` | Improve UX copy, error messages, and labels |
 | `/onboard` | Design onboarding flows and first-time experiences |
 | `/optimize` | Improve loading speed, rendering, animations, bundle size |
+
+`/teach-impeccable` gathers a project's Design Context from scratch, but
+[`files/.impeccable.md.template`](./files/.impeccable.md.template) is a copy-and-rewrite
+starting point — a real project's finished `.impeccable.md` (audience, use cases, brand
+tone, an established design system, hard constraints, the "AI-slop" bar) kept as a worked
+example, not a global default. `cp files/.impeccable.md.template <project>/.impeccable.md`
+then replace every section with that project's own answers.
 
 **From dx:**
 
@@ -484,6 +498,17 @@ Specialized subagents in `~/.claude/agents/`. Invoked via `Agent` tool with the 
 | `mlops-engineer` | MLflow/Kubeflow/Airflow pipelines, model registry, experiment tracking, drift monitoring |
 | `threat-modeling-expert` | STRIDE/PASTA threat modeling, attack trees, architectural security review (opus-tier) |
 
+**From [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents)** (MIT; vendored in [`files/agents/`](./files/agents/), attribution + commit SHA in [`files/agents/NOTICE.md`](./files/agents/NOTICE.md)) — the upstream repo ships 79 agents across 8 teams, but the 21 `impeccable` design skills above already cover pure design/markup critique. Only pulled the four that actually drive a browser or compute a number instead of reasoning about markup in prose:
+
+| Agent | When to use |
+|-------|-------------|
+| `contrast-master` | Any color/theme/dark-mode decision — computes exact WCAG contrast ratios via a runnable formula instead of eyeballing them |
+| `design-system-auditor` | Auditing Tailwind config, CSS custom properties, Style Dictionary, or MUI/Chakra theme files for contrast/focus/spacing failures at the token source, before they reach rendered UI |
+| `playwright-scanner` | Live behavioral accessibility scan of a running page — keyboard traps, dynamic states, responsive viewports, rendered contrast, a11y tree, via real Playwright + axe-core runs |
+| `playwright-verifier` | Verifying a specific accessibility fix landed and didn't regress, via a targeted axe-core assertion |
+
+Rejected from the same shortlist: `wcag-aaa` (a AAA criteria checklist — no computation, no browser, duplicates the design skills) and `lighthouse-bridge` (reads pre-existing Lighthouse CI JSON via plain reasoning, doesn't run anything itself). Full reasoning in `files/agents/NOTICE.md`.
+
 ---
 
 ## Rules
@@ -709,7 +734,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **40+ 퍼미션 사전 허용** - git, npm, python, docker, gh 등 팝업 없이 자동 승인
 - **위험 명령어 차단** - `rm -rf`, `git push --force`, `git reset --hard` 등 deny 처리
 - **커스텀 커맨드 9개** - 자체 5개 (`/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`) + wshobson 4개 (`/slo-implement`, `/sql-migrations`, `/incident-response`, `/security-sast`)
-- **특화 에이전트 4개** - observability-engineer, database-admin, mlops-engineer, threat-modeling-expert (wshobson/agents에서 cherry-pick)
+- **특화 에이전트 8개** - observability-engineer, database-admin, mlops-engineer, threat-modeling-expert (wshobson/agents cherry-pick) + contrast-master, design-system-auditor, playwright-scanner, playwright-verifier (Community-Access/accessibility-agents에서 cherry-pick — 브라우저를 직접 구동하거나 contrast ratio를 실제로 계산하는 4개만 선별, 79개 중 나머지는 텍스트 판단형이라 impeccable 스킬과 중복돼서 제외)
 - **항상 적용되는 코딩 규칙** - 불변성, 보안 체크, TDD, conventional commits
 - **Python 전용 규칙** - `*.py` 파일에서만 활성화 (PEP 8, pytest, bandit, ruff)
 - **React 전용 규칙** - `*.tsx`/`*.jsx` 파일에서만 활성화 (컴포넌트, hooks, XSS, RTL)
@@ -743,6 +768,7 @@ bash setup.sh
 | **커스텀 커맨드 (자체 5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
 | **커스텀 커맨드 (wshobson 4개)** | /slo-implement (SLO/burn-rate), /sql-migrations (zero-downtime), /incident-response (SRE 오케스트레이션), /security-sast (다언어 SAST) |
 | **특화 에이전트 (wshobson 4개)** | observability-engineer, database-admin (Postgres ops), mlops-engineer (MLflow/Kubeflow), threat-modeling-expert (STRIDE/PASTA, opus) |
+| **특화 에이전트 (accessibility-agents 4개)** | contrast-master (WCAG contrast ratio 실계산), design-system-auditor (디자인 토큰 파일 contrast 감사), playwright-scanner (실브라우저 접근성 스캔), playwright-verifier (수정사항 검증) — 출처: [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents), 속성 표기는 `files/agents/NOTICE.md` |
 | **공통 규칙 (5개)** | 코딩 스타일 (불변성, KISS/DRY/YAGNI, 네이밍, 코드 스멜), 보안 (Response Protocol 포함), 테스트 (80%+, AAA 패턴), git 워크플로우, 디자인 패턴 (parallel agents 평가) |
 | **Python 규칙 (4개)** | PEP 8, pytest, bandit, Protocol/dataclass 패턴 |
 | **React 규칙 (5개)** | 코딩 스타일, hooks 규율, 패턴(composition/context), 보안(XSS/sanitization), 테스트(RTL/MSW) |

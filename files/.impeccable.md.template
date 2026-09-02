@@ -1,0 +1,90 @@
+<!--
+EXAMPLE, not a global default.
+
+This is the .impeccable.md from an active project (microapps, 2026-09) kept
+here as a worked example of what a real Design Context doc for the
+`teach-impeccable` skill / impeccable design suite looks like — target
+audience, use cases, brand tone, an established design-system section, hard
+constraints, and a concrete "AI-slop" bar. Copy it into a new project's root
+as a starting skeleton, then replace every section below with that
+project's own answers. Do not use these specific answers (astrology
+micro-apps, Ink & Vermilion palette, etc.) for an unrelated project — they
+are one project's real design context, not house style.
+
+Generate your own with: run the `teach-impeccable` skill in the target
+project, or fill this template out by hand.
+-->
+
+# Design Context — microapps
+
+## Target audience
+
+Global English speakers skewing young (20s–30s), heavily Southeast Asia (Thailand,
+Vietnam, Indonesia, Philippines) plus US/UK. Many are non-native English readers, so
+prose is short and plain. **Mobile-first: 390px is the primary design width** — most
+visitors arrive from a link on X, on a phone.
+
+## Use cases
+
+Micro-payment consumer apps around Chinese astrology (사주 / BaZi) and adjacent
+fortune-telling formats. Each app: a 15-second input, a free result the user wants to
+screenshot and post, and a $0.99 paywall over the detailed reading.
+
+**The free result screen is the distribution engine.** It must look finished and
+postable on its own. The paywall sells *why* that result, never the result itself.
+
+## Brand personality / tone
+
+Assertive, never hedging. Second person plural. Short sentences. The reading should feel
+like it knows something. Nothing may look like an ad or a chrome-heavy SaaS dashboard —
+the page should read as **an object, not an app**.
+
+## Red Thread — the established design system
+
+Approved 2026-09-02. Reference implementation: `docs/design/red-thread-mockup.html`
+(self-contained, opens from disk). Treat it as the source of truth for presentation.
+
+**One layout, two materials.** Light and dark are not two designs — one DOM, one layout,
+one type scale, one spacing rhythm, rendered in two materials. Every element exists in
+both modes in the same place.
+
+- **Light — 먹과 주사 (Ink & Vermilion):** warm paper ground, ink that is never pure
+  black, vermilion as the single accent used in very few places. Letterpress.
+- **Dark — 자정의 의식 (Midnight Ritual):** stacked near-black navies for depth, gold as
+  a material with facets and grain. **Never a glow, never a backdrop-filter.**
+
+**Fonts (one set, both modes):** Iowan Old Style (display) / Charter (body) /
+Optima (labels) / Hiragino Mincho ProN (CJK glyphs).
+
+**Two signature elements, both load-bearing:**
+1. **The thread** — one continuous, traceable red line that hooks through the date
+   inputs, passes through the counters of the score's digits like a needle's eye, and
+   ties off in a knot. This is the brand.
+2. **The ecliptic chart** — the real 12-branch chart with the animals' trine drawn, lit
+   vertices for the pair and an unlit dashed vertex for the absent one.
+
+**Withheld (paid) text is never blurred.** Light: letterpress misregistration plus an
+off-square 秘 stamp. Dark: unlit low-contrast text behind gold louvers plus a wax seal.
+**Section titles always stay perfectly legible** — they are the appetite.
+
+**Theme mechanics:** complete light palette on bare `:root`; dark deltas under
+`@media (prefers-color-scheme: dark)` guarded as `:root:not([data-theme="light"])`; the
+same deltas again under `:root[data-theme="dark"]`. Never define a color only inside a
+media or `[data-theme]` block. `--is-dark` (0/1) drives mode-dependent geometry directly
+so component rules stay mode-agnostic.
+
+## Hard constraints
+
+- Zero runtime variable cost: no LLM API, no image generation API, no paid external API.
+- No login, no accounts. No ads.
+- Readings are never stored server-side — the URL fully determines the result.
+- Verify no horizontal overflow at 390, 430, 768, 1280.
+- Respect `prefers-reduced-motion`. Pages must be correct with JS disabled.
+- `<input type="date">` prints its digits in the browser's UI locale and no web API can
+  override that. The fix is a static English echo under the field, not a fake input.
+
+## The bar
+
+The AI-slop test governs: no purple-blue gradients, no glassmorphism, no neon-on-dark,
+no nested cards, no identical card grids, no gradient text, no generic drop-shadowed
+rounded rectangles. If someone would say "an AI made this," it has failed.
