@@ -85,7 +85,8 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── mlops-engineer.md         # MLflow/Kubeflow/Airflow, drift monitoring
 │   └── threat-modeling-expert.md # STRIDE/PASTA, attack trees (opus-tier)
 └── skills/
-    ├── my-voice/                 # Writes ticket/PR comments in my own voice
+    ├── my-voice/                 # Writes ticket/PR comments in my own voice (Korean)
+    ├── stop-slop/                # Strips AI tells from English prose (vendored)
     └── …                         # 21 impeccable design skills (animate, polish, audit…)
 ```
 
@@ -106,6 +107,22 @@ description 매칭만으로는 댓글 요청이 긴 다단계 지시 중간에 �
 ```bash
 python3 ~/.claude/scripts/extract-voice.py -o /tmp/corpus.json --text /tmp/corpus.txt
 ```
+
+### `stop-slop`
+
+[hardikpandya/stop-slop](https://github.com/hardikpandya/stop-slop) (MIT), vendored.
+영문 지원서 질답, 커버레터, CV, 리크루터 답장, 영문 문서에서 AI 티를 걷어낸다.
+서두 헛기침, 부사, 수동태, 이분법 대조("not X, it's Y") 같은 패턴을 잡고
+directness/rhythm/trust/authenticity/density 5축으로 채점한다.
+
+규칙이 영문법에 묶여 있어 한국어에는 적용되지 않는다. 업스트림 description이
+"prose", "text"로 넓어서 한국어 티켓 댓글에도 걸리길래 **영어 전용으로 좁히고
+`my-voice` 우선 규칙을 넣었다.** 변경분은 `files/skills/NOTICE.md` 참고.
+
+| 쓰는 글 | 스킬 |
+|---|---|
+| 한국어 — 티켓/PR 댓글, 슬랙 공유 | `my-voice` |
+| 영어 — 지원서, 커버레터, CV, 영문 문서 | `stop-slop` |
 
 ```
 # Reference docs (not copied to ~/.claude — read-only research notes)
