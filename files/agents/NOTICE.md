@@ -15,6 +15,29 @@ author below.
 |----------|----------|---------|
 | `contrast-master`, `design-system-auditor`, `playwright-scanner`, `playwright-verifier` | [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents) by Taylor Arndt, vendored from `claude-code-plugin/agents/` at commit [`161c60c`](https://github.com/Community-Access/accessibility-agents/commit/161c60c7493ad657f371ad8f91253d33c3b12044) (2026-08-02) | MIT (`LICENSE`) |
 
+### Upstream status (last checked 2026-10-26, upstream HEAD `decf6ba`, v7.0.3, 2026-09-23)
+
+Upstream v7.0.0 ([`cd88753`](https://github.com/Community-Access/accessibility-agents/commit/cd88753), 2026-09-21)
+deleted `claude-code-plugin/` and turned every agent into an Agent Skill under
+`skills/<name>/`. The four files above were not edited between `161c60c` and that
+deletion, so `161c60c` is still their final form as agents. The v7 skill versions were
+**not** adopted, because for standalone use they are a step back:
+
+- The guidance text (formulas, Tailwind ratio tables, token-audit phases) is unchanged.
+  It has only been split into `SKILL.md` plus `references/*.md`.
+- Every one now ends in an "Output contract: return only JSON matching
+  `skills/a11y-core/schemas/findings.schema.json`" that points at upstream's shared
+  `a11y-core` skill. All four are `disable-model-invocation: true`, and the two
+  Playwright ones are also `user-invocable: false` internal helpers.
+- `playwright-scanner` and `playwright-verifier` now call upstream's MCP server tools
+  (`run_playwright_keyboard_scan`, `run_playwright_state_scan`, ...) rather than
+  writing Playwright scripts. The component-scan, WCAG 2.2 target-size and
+  focus-not-obscured sections, and the verifier's contrast regression-test template,
+  were dropped.
+
+Next time, diff against `skills/<name>/SKILL.md` + `references/` at upstream HEAD, not
+`claude-code-plugin/agents/`.
+
 ## Why these four
 
 The upstream repo ships 79 agents across 8 teams (accessibility for web, PDF,
@@ -63,6 +86,9 @@ agents instead spawn their own `npx playwright test` runs. Functionally this
 still means "drives a real browser," just via a subprocess rather than the
 MCP session.
 
+All four agents also get a `model: sonnet` line in their frontmatter, which upstream
+does not have.
+
 `design-system-auditor`'s "Handoffs" section still references
 `accessibility-lead`, `mobile-accessibility`, and `wcag-guide`, which were
 not vendored — see the note left in that file.
@@ -75,6 +101,7 @@ explicitly via the Agent/Task tool, or delegate to them from another agent,
 when you need a real browser run or an exact contrast-ratio number rather
 than a design critique.
 
-To update: re-clone the upstream repo, diff `claude-code-plugin/agents/` for
-the four files above, and re-apply the description/body edits noted here.
+To update: re-clone the upstream repo, diff `skills/<name>/` (since v7.0.0;
+`claude-code-plugin/agents/` no longer exists) for the four entries above, and
+re-apply the description/body/`model` edits noted here.
 This repo does not pin a version beyond the commit SHA recorded above.
