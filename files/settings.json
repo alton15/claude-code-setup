@@ -8,7 +8,6 @@
     "allow": [
       "mcp__atlassian-agent",
       "Read(~/.claude)",
-      "mcp__pencil",
       "Bash(git status:*)",
       "Bash(git log:*)",
       "Bash(git diff:*)",
@@ -49,7 +48,8 @@
       "Bash(head:*)",
       "Bash(tail:*)",
       "Bash(sort:*)",
-      "Bash(uniq:*)"
+      "Bash(uniq:*)",
+      "mcp__pencil"
     ],
     "deny": [
       "Bash(rm -rf:*)",
@@ -58,6 +58,20 @@
       "Bash(docker rm:*)",
       "Bash(docker rmi:*)",
       "Bash(kubectl delete:*)"
+    ]
+  },
+  "model": "opus",
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/scripts/check-context.sh"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -78,18 +92,12 @@
       }
     }
   },
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  },
+  "tui": "fullscreen",
   "skipDangerousModePermissionPrompt": true,
-  "hooks": {
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/scripts/check-context.sh"
-          }
-        ]
-      }
-    ]
-  }
+  "agentPushNotifEnabled": true
 }

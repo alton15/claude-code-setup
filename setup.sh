@@ -111,6 +111,14 @@ else
     echo "  Shell aliases already exist in $SHELL_RC, skipping"
 fi
 
+# 9b. RTK (Rust Token Killer): hook + RTK.md + settings patch come from rtk itself
+echo "      Wiring RTK token-saving hook..."
+if command -v rtk >/dev/null; then
+    rtk init -g --auto-patch
+else
+    echo "      rtk not installed — skipped. Install with 'brew install rtk', then run 'rtk init -g --auto-patch'"
+fi
+
 echo ""
 echo "=== Files installed ==="
 echo ""
