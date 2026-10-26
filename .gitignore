@@ -1,0 +1,3 @@
+# Tool output, never part of the setup
+.playwright-mcp/
+.DS_Store

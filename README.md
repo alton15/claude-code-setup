@@ -21,8 +21,11 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **Always-on coding rules** - immutability, security checks, TDD, conventional commits
 - **Python-specific rules** that activate only on `*.py` files (PEP 8, pytest, bandit, ruff)
 - **4 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, etc.)
-- **21 design skills** - [impeccable](https://github.com/pbakaus/impeccable) suite (`/frontend-design`, `/animate`, `/polish`, `/audit`…) for high-quality frontend UI
+- **21 design skills** - [impeccable](https://github.com/pbakaus/impeccable) suite (`/frontend-design`, `/animate`, `/polish`, `/audit`…) for high-quality frontend UI, pinned to v2.0.2, the last one-skill-per-command release (see [Vendored upstream](#vendored-upstream))
 - **4 accessibility agents** - `contrast-master`, `design-system-auditor`, `playwright-scanner`, `playwright-verifier` from [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents) — the ones that actually drive a browser or compute a contrast ratio, unlike the text-only design skills above
+- **RTK token-saving hook** - `setup.sh` runs `rtk init -g --auto-patch` (RTK 1.x) so verbose CLI output is compressed before it reaches the context
+- **Opus at high effort, fullscreen TUI, push notifications** - the model defaults I actually run with
+- **General feedback memories** ([files/memory/](./files/memory/)) - how I want Claude to work, kept as reference (not installed)
 - **Shell shortcuts** - `c` for claude, `ch` for chrome mode, `--fs` for fork-session
 - **Mode-based contexts** - switch between dev/review/research mindsets
 
@@ -53,6 +56,7 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 # (also in this repo, but NOT copied to ~/.claude — per-project use)
 # files/.claudeignore.template    # Copy into your project root to block heavy paths
 # files/.impeccable.md.template   # Example Design Context doc (one real project's answers) — copy + rewrite per project
+# files/memory/                   # General feedback memories — reference only, see "Memory"
 ├── commands/                     # Custom slash commands
 │   ├── review.md                 # /review - pre-commit quality & security check
 │   ├── quick-commit.md           # /quick-commit - stage, review, commit
@@ -363,6 +367,9 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 
 | Setting | What it does |
 |---------|--------------|
+| `model: opus` + `modelSettings.claude-opus-5-5.effortLevel: high` | Opus by default, at high reasoning effort |
+| `tui: fullscreen` | Fullscreen terminal UI |
+| `agentPushNotifEnabled` | Push a notification when a background agent needs me |
 | `ENABLE_TOOL_SEARCH` | Enables deferred tool search |
 | `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60` | Auto-compress context at 60% usage (proactive — keeps prompt cache fresh) |
 | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Token budget the % is calculated against (400K window) |
@@ -372,6 +379,7 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 | `enabledPlugins` | superpowers + dx + cli-anything + vercel |
 | `skipDangerousModePermissionPrompt` | Skip dangerous mode confirmation |
 | `hooks.Stop` | Run context check on every conversation stop |
+| `hooks.PreToolUse` (not in the repo file) | `rtk hook claude` — added to your live settings by `rtk init -g --auto-patch`, which `setup.sh` runs |
 
 ---
 
@@ -411,7 +419,7 @@ Cost-cutting tactics baked into this setup (and how to use them). Prompt caching
 | **Auto-compact window** | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Calculates % against a 400K window — friendlier for 1M-context Opus 4.8 sessions. |
 | **Stop-hook context guard** | `scripts/check-context.sh` | At 85%, blocks stop and prompts `/half-clone` before the next turn balloons. |
 | **Pre-approved permissions** | `settings.json` allow list | No back-and-forth confirmation tokens. |
-| **RTK CLI proxy** | Global `~/.claude/hooks/rtk-rewrite.sh` (not in this repo — install separately) | Compresses verbose CLI output 60–90% before it reaches the context. `git status` 80%, `cargo test` 91% savings measured. |
+| **RTK CLI proxy** | `rtk hook claude` PreToolUse hook + `~/.claude/RTK.md`, both written by `rtk init -g --auto-patch` (run by `setup.sh`; needs `brew install rtk`, 1.x) | Rewrites `git status` → `rtk git status` and the like, compressing verbose CLI output 60–90% before it reaches the context. `git status` 80%, `cargo test` 91% savings measured. |
 
 ### Per-project: drop `.claudeignore`
 
@@ -603,6 +611,29 @@ alias cct-health='npx claude-code-templates@latest --health-check'   # installat
 
 ---
 
+## Memory
+
+`files/memory/` holds the general feedback memories I've given Claude: how much to ask before acting, which CLI tools to prefer, keeping repos free of generated docs and untracked noise, token-saving habits, and pointers to the skill-building and token-optimization references.
+
+They are reference only — `setup.sh` doesn't install them, because Claude Code keeps memories per project (`~/.claude/projects/<project>/memory/`). Copy the ones you want into a project's memory folder and list them in its `MEMORY.md`.
+
+Memories about specific companies, colleagues and personal matters are deliberately left out.
+
+---
+
+## Vendored upstream
+
+Last refreshed 2026-10-26. Exact commits and local edits are in `files/skills/NOTICE.md` and `files/agents/NOTICE.md`.
+
+| Vendored | Pinned at | Why not HEAD |
+|---|---|---|
+| impeccable (20 skills incl. `frontend-design`) | `209444a` (v2.0.2) | Upstream later merged every command into one `impeccable` skill that downloads a binary on first run. v2.0.2 is the last release with one skill per command. |
+| impeccable `critique` | `7861a5c` | Its v2.0.2 version ships an unresolved `{{scripts_path}}` placeholder and calls a script that isn't included. |
+| stop-slop | `8da1f03` (HEAD) | Up to date; three local edits narrow it to English prose. |
+| accessibility-agents (4 agents) | `161c60c` | v7 turned agents into skills that only return JSON for an upstream report renderer; the standalone agents are more useful here. |
+
+---
+
 ## Source repos
 
 This setup is built on top of these community repos. Clone them for additional agents, skills, hooks, and configs beyond what's included here.
@@ -738,7 +769,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **항상 적용되는 코딩 규칙** - 불변성, 보안 체크, TDD, conventional commits
 - **Python 전용 규칙** - `*.py` 파일에서만 활성화 (PEP 8, pytest, bandit, ruff)
 - **React 전용 규칙** - `*.tsx`/`*.jsx` 파일에서만 활성화 (컴포넌트, hooks, XSS, RTL)
-- **플러그인 3개** - 브레인스토밍, 플래닝, 디버깅, 코드 리뷰 등 체계적 워크플로우
+- **플러그인 4개** - 브레인스토밍, 플래닝, 디버깅, 코드 리뷰, Vercel 등 체계적 워크플로우
+- **RTK 토큰 절약 hook** - `setup.sh`가 `rtk init -g --auto-patch`(RTK 1.x)를 실행해 CLI 출력을 컨텍스트에 들어가기 전에 압축
+- **Opus + effort high, 전체화면 TUI, 푸시 알림** - 실제로 쓰는 기본값
+- **일반 피드백 메모리** ([files/memory/](./files/memory/)) - Claude가 일하는 방식에 대한 피드백 모음 (참고용, 설치 안 됨)
 - **Shell 단축키** - `c` (claude), `ch` (chrome 모드), `--fs` (fork-session)
 - **모드별 컨텍스트** - dev/review/research 마인드셋 전환
 
@@ -758,7 +792,10 @@ bash setup.sh
 
 | 구성 요소 | 설명 |
 |----------|------|
-| **플러그인** | superpowers (핵심 워크플로우 + [impeccable](https://github.com/pbakaus/impeccable) 디자인 스킬 21개), dx (컨텍스트 관리), cli-anything (CLI 연동) |
+| **플러그인** | superpowers (핵심 워크플로우), dx (컨텍스트 관리), cli-anything (CLI 연동), vercel |
+| **디자인 스킬** | [impeccable](https://github.com/pbakaus/impeccable) 21개, v2.0.2에 고정 (이후 업스트림이 바이너리를 내려받는 단일 스킬로 합쳐져서). 고정 커밋은 `files/skills/NOTICE.md` |
+| **기본 모델 설정** | `model: opus`, effort high, `tui: fullscreen`, 백그라운드 에이전트 푸시 알림 |
+| **메모리** | `files/memory/` 일반 피드백 13개. 메모리는 프로젝트별로 저장되므로 설치하지 않고 참고용으로 둠. 회사·동료·개인 관련 메모리는 제외 |
 | **MCP 서버 (글로벌)** | atlassian-agent (Jira/Confluence), firecrawl-mcp (웹 검색/스크래핑), pencil (디자인 편집) |
 | **MCP 서버 (프로젝트 전용, `~/.claude.json`)** | `~/Downloads/resume`: gmail, gmail-mcp, browser-fetch · `~/work/work-monorepo`: figma, figma-mcp · `~/project/oncall-bot`: atlassian-agent |
 | **MCP 서버 (커밋용, `.mcp.json`)** | work-monorepo: datadog · everything-claude-code: github/context7/exa/memory/playwright/sequential-thinking |
@@ -791,7 +828,7 @@ bash setup.sh
 
 자세한 내용은 [영문 Token optimization 섹션](#token-optimization) 참고. 핵심만:
 
-- **자동 적용**: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60`(2026-06 80→60 하향), 85% Stop hook, 퍼미션 사전 허용, RTK CLI 프록시
+- **자동 적용**: `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60`(2026-06 80→60 하향), 85% Stop hook, 퍼미션 사전 허용, RTK CLI 프록시(`rtk hook claude`, `setup.sh`가 `rtk init -g --auto-patch`로 연결)
 - **프로젝트별 적용**: `cp files/.claudeignore.template <project>/.claudeignore` — `node_modules`, lock, 빌드 산출물 차단
 - **행동 규칙** (CLAUDE.md): `/compact`는 50%에서 능동적으로, 80% 넘으면 `/half-clone`/`/handoff`, 한 대화 한 주제 (캐시 유지), 5분 캐시 TTL(연속 작업 유리), 페이즈 중 모델 스위치 금지
 - **모델 믹스**: Haiku 4.5 (단순) / Sonnet 4.6 (기본) / Opus 4.8 (어려운 추론만)
