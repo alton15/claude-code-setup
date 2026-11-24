@@ -2,7 +2,8 @@
   "env": {
     "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60",
-    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "400000"
+    "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "400000",
+    "CLAUDE_CODE_PLUGIN_DIRS": "~/.claude/mods/companion"
   },
   "permissions": {
     "allow": [
@@ -82,7 +83,8 @@
     "superpowers@claude-plugins-official": true,
     "dx@ykdojo": true,
     "cli-anything@cli-anything": true,
-    "vercel@claude-plugins-official": true
+    "vercel@claude-plugins-official": true,
+    "swift-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "cli-anything": {
@@ -94,7 +96,7 @@
   },
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "xhigh"
     }
   },
   "tui": "fullscreen",

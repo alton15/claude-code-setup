@@ -1,0 +1,16 @@
+{
+  "name": "companion-3d",
+  "private": true,
+  "version": "0.1.0",
+  "description": "VRM renderer the desktop companion hosts in a WKWebView",
+  "scripts": {
+    "build": "esbuild main.js --bundle --format=iife --minify --target=safari16 --outfile=dist/companion3d.js"
+  },
+  "dependencies": {
+    "@pixiv/three-vrm": "3.5.5",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

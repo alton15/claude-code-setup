@@ -10,7 +10,8 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 
 ## What this gives me
 
-- **Real-time cost & context tracking** in the status line (model, git branch, token usage, estimated cost)
+- **Real-time cost & context tracking** in the status line (model + effort, git branch, context, token usage, and the session cost Claude Code itself reports)
+- **"현황" side pane** ([`files/mods/companion/`](./files/mods/companion/)) - a Claude Code mod docked beside the chat: context with the auto-compact point marked, 5-hour/weekly limits, **per-model weekly limits such as Fable**, usage credits, a "runs out at HH:MM at this pace" warning, the model and effort in use, running tools and tasks (see [Companion mod](#companion-mod-side-pane))
 - **Automatic context overflow warning** - suggests `/half-clone` when context hits 85%
 - **Auto-compact at 60%** - proactive context compression (was 80%, tightened 2026-06 for prompt-cache friendliness)
 - **`.claudeignore` template** - drop into any project to block `node_modules`, lock files, build artifacts
@@ -20,11 +21,11 @@ Built on top of community repos - [claude-code-tips](https://github.com/ykdojo/c
 - **5 custom slash commands** - `/review`, `/quick-commit`, `/verify`, `/handoff`, `/parallel-plan`
 - **Always-on coding rules** - immutability, security checks, TDD, conventional commits
 - **Python-specific rules** that activate only on `*.py` files (PEP 8, pytest, bandit, ruff)
-- **4 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, etc.)
+- **5 plugins** for structured workflows (brainstorming, planning, debugging, code review, Vercel/AI SDK, Swift LSP, etc.)
 - **21 design skills** - [impeccable](https://github.com/pbakaus/impeccable) suite (`/frontend-design`, `/animate`, `/polish`, `/audit`…) for high-quality frontend UI, pinned to v2.0.2, the last one-skill-per-command release (see [Vendored upstream](#vendored-upstream))
 - **4 accessibility agents** - `contrast-master`, `design-system-auditor`, `playwright-scanner`, `playwright-verifier` from [Community-Access/accessibility-agents](https://github.com/Community-Access/accessibility-agents) — the ones that actually drive a browser or compute a contrast ratio, unlike the text-only design skills above
 - **RTK token-saving hook** - `setup.sh` runs `rtk init -g --auto-patch` (RTK 1.x) so verbose CLI output is compressed before it reaches the context
-- **Opus at high effort, fullscreen TUI, push notifications** - the model defaults I actually run with
+- **Opus at xhigh effort, fullscreen TUI, push notifications** - the model defaults I actually run with
 - **General feedback memories** ([files/memory/](./files/memory/)) - how I want Claude to work, kept as reference (not installed)
 - **Shell shortcuts** - `c` for claude, `ch` for chrome mode, `--fs` for fork-session
 - **Mode-based contexts** - switch between dev/review/research mindsets
@@ -95,6 +96,10 @@ The script copies files to `~/.claude/`, adds shell aliases, and prints plugin i
 │   ├── playwright-scanner.md     # Drives real Playwright + axe-core against live pages (accessibility-agents)
 │   ├── playwright-verifier.md    # Verifies a fix via targeted axe-core assertion (accessibility-agents)
 │   └── NOTICE.md                 # Attribution for vendored agents above
+├── mods/
+│   └── companion/                # "현황" side pane mod, loaded via CLAUDE_CODE_PLUGIN_DIRS
+│       ├── hooks/                # Pane, usage endpoint reader, formatters, tests
+│       └── desktop/              # Optional macOS overlay app (Swift + three-vrm), built by build.sh
 └── skills/
     ├── my-voice/                 # Writes ticket/PR comments in my own voice (Korean)
     ├── stop-slop/                # Strips AI tells from English prose (vendored)
@@ -157,7 +162,7 @@ Research notes that extend this setup based on [Reindeer's LLM engineering artic
 
 ## Plugins
 
-Four plugins provide structured development workflows.
+Five plugins provide structured development workflows.
 
 | Plugin | Marketplace | What it does |
 |--------|-------------|--------------|
@@ -165,6 +170,9 @@ Four plugins provide structured development workflows.
 | **dx** | [ykdojo](https://github.com/ykdojo/claude-code-tips) | Context management: /clone, /half-clone, /handoff, /gha, /review-claudemd |
 | **cli-anything** | [CLI-Anything](https://github.com/HKUDS/CLI-Anything) | Auto-connect CLI tools |
 | **vercel** | anthropics/claude-plugins-official | Vercel + AI SDK: deploy/env/CI-CD skills, Next.js/AI SDK guidance, AI-architect & deployment-expert agents |
+| **swift-lsp** | anthropics/claude-plugins-official | Swift language server (go-to-definition, diagnostics) for the companion's macOS app and other Swift work; needs Xcode's `sourcekit-lsp` |
+
+Project-scoped plugins (installed per project with `--scope project`, not global) are left out of `settings.json` — e.g. the [awesome-gamedev-agent-skills](https://github.com/gamedev-skills/awesome-gamedev-agent-skills) set for a Godot project.
 
 ### Available slash commands
 
@@ -242,6 +250,7 @@ claude plugin install superpowers@claude-plugins-official
 claude plugin install dx@ykdojo
 claude plugin install cli-anything@cli-anything
 claude plugin install vercel@claude-plugins-official
+claude plugin install swift-lsp@claude-plugins-official
 ```
 
 **Keeping plugins fresh** — plugins install as pinned versions, so refresh them periodically:
@@ -251,6 +260,7 @@ claude plugin update superpowers@claude-plugins-official
 claude plugin update dx@ykdojo
 claude plugin update cli-anything@cli-anything
 claude plugin update vercel@claude-plugins-official
+claude plugin update swift-lsp@claude-plugins-official
 ```
 
 Last refreshed 2026-08-11: superpowers 6.2.0, dx 0.14.24, cli-anything (latest), vercel 0.45.1.
@@ -367,16 +377,17 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 
 | Setting | What it does |
 |---------|--------------|
-| `model: opus` + `modelSettings.claude-opus-5-5.effortLevel: high` | Opus by default, at high reasoning effort |
+| `model: opus` + `modelSettings.claude-opus-5-5.effortLevel: xhigh` | Opus by default, at xhigh reasoning effort |
 | `tui: fullscreen` | Fullscreen terminal UI |
 | `agentPushNotifEnabled` | Push a notification when a background agent needs me |
 | `ENABLE_TOOL_SEARCH` | Enables deferred tool search |
 | `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=60` | Auto-compress context at 60% usage (proactive — keeps prompt cache fresh) |
 | `CLAUDE_CODE_AUTO_COMPACT_WINDOW=400000` | Token budget the % is calculated against (400K window) |
+| `CLAUDE_CODE_PLUGIN_DIRS=~/.claude/mods/companion` | Loads the companion mod (the "현황" side pane) in every session |
 | `permissions.allow` (40+ commands) | Auto-allow git, npm, python, docker, gh, file ops, MCP servers |
 | `permissions.deny` (6 commands) | Block `rm -rf`, `git push --force`, `git reset --hard`, `docker rm/rmi`, `kubectl delete` |
-| `statusLine` | Custom bash script showing model/git/context/cost |
-| `enabledPlugins` | superpowers + dx + cli-anything + vercel |
+| `statusLine` | Custom bash script showing model/effort/git/context/cost |
+| `enabledPlugins` | superpowers + dx + cli-anything + vercel + swift-lsp |
 | `skipDangerousModePermissionPrompt` | Skip dangerous mode confirmation |
 | `hooks.Stop` | Run context check on every conversation stop |
 | `hooks.PreToolUse` (not in the repo file) | `rtk hook claude` — added to your live settings by `rtk init -g --auto-patch`, which `setup.sh` runs |
@@ -387,13 +398,36 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 
 `statusline-command.sh` displays in real time:
 
-- **Model name** (Opus / Sonnet / Haiku) in purple
+- **Model name + effort** (e.g. `Opus 5.5 (xhigh)`) in purple
 - **Working directory** in blue
 - **Git branch + dirty status** (green = clean, yellow = uncommitted changes)
 - **Context usage** (green >50% remaining, yellow 20-50%, red <20%)
-- **Estimated cost** (calculated from model-specific token pricing)
+- **Session cost** — `cost.total_cost_usd` from the status line input, the same figure `/cost` shows. Claude Code prices it at current list rates (or an org's `modelPricing` override), so the script keeps no price table that can go stale
 - **Token counts** (input/output with K/M suffixes)
 - **Output style** (default/concise/verbose)
+
+---
+
+## Companion mod (side pane)
+
+[`files/mods/companion/`](./files/mods/companion/) is a Claude Code mod (hooks module, not a plugin from a marketplace). `setup.sh` copies it to `~/.claude/mods/companion`, and `CLAUDE_CODE_PLUGIN_DIRS` in `settings.json` loads it, so a "현황" pane docks beside the chat in every session (`/hud` opens it if the terminal was too narrow).
+
+| Row | Source |
+|-----|--------|
+| Context bar with a `│` tick at the auto-compact point | `$.session.usage()`; the tick comes from `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`, and the warning fires 5 points before it |
+| 5-hour · weekly | The engine's rate-limit readings |
+| **Per-model weekly (Fable, Sonnet, Opus)** · usage credits | The account usage endpoint `/usage` reads (`api.anthropic.com/api/oauth/usage`). The engine does not hand these to mods, so the mod calls it through `$.session.authorize()` + `$.http.fetch` — the token stays with the engine, the mod only holds an opaque handle. Read at session start, every 5 minutes, and after a turn (at most every 2 minutes) |
+| "⚠ runs out at HH:MM at this pace" | Linear projection of use so far, shown only when it lands before the reset |
+| Model · effort | The main loop's last `turn.step` (subagent requests ignored), so a `/model` switch or fallback shows at once |
+| Running tools · tasks | `tool.call`, `TaskCreate`/`TaskUpdate`/`TodoWrite` |
+
+`/hud refresh` re-reads the per-model windows now; on an API-key login those rows quietly drop out, and a failed read keeps the last value with the reason. A per-model weekly window past 90% raises one toast. The optional desktop overlay app (`/hud desktop`) and its build steps are in the mod's own [README](./files/mods/companion/README.md); character images and 3D models are not in this repo.
+
+```bash
+cd ~/.claude/mods/companion
+claude plugin test .       # 19 tests: pane rows, usage endpoint parsing, error paths, formatters
+claude plugin validate .
+```
 
 ---
 
@@ -757,7 +791,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 이 세팅으로 얻는 것
 
-- **실시간 비용 & 컨텍스트 추적** - 상태바에 모델, git 브랜치, 토큰 사용량, 예상 비용 표시
+- **실시간 비용 & 컨텍스트 추적** - 상태바에 모델 + effort, git 브랜치, 컨텍스트, 토큰 사용량, Claude Code가 계산한 세션 비용 표시
+- **"현황" 사이드 패널** ([`files/mods/companion/`](./files/mods/companion/)) - 채팅 옆에 붙는 mod. 자동 압축 지점이 표시된 컨텍스트, 5시간/주간 한도, **Fable 같은 모델별 주간 한도**, 추가 사용 크레딧, "이 속도면 HH:MM 소진" 경고, 지금 쓰는 모델·effort, 진행 중 툴·태스크
 - **컨텍스트 오버플로우 자동 경고** - 85% 도달 시 `/half-clone` 안내
 - **60%에서 자동 컨텍스트 압축** - `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` (프롬프트 캐시 유지 목적, 2026-06 80%→60% 조정)
 - **`.claudeignore` 템플릿** - 프로젝트별로 복사하면 `node_modules`, lock 파일, 빌드 산출물 자동 차단
@@ -769,9 +804,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 - **항상 적용되는 코딩 규칙** - 불변성, 보안 체크, TDD, conventional commits
 - **Python 전용 규칙** - `*.py` 파일에서만 활성화 (PEP 8, pytest, bandit, ruff)
 - **React 전용 규칙** - `*.tsx`/`*.jsx` 파일에서만 활성화 (컴포넌트, hooks, XSS, RTL)
-- **플러그인 4개** - 브레인스토밍, 플래닝, 디버깅, 코드 리뷰, Vercel 등 체계적 워크플로우
+- **플러그인 5개** - 브레인스토밍, 플래닝, 디버깅, 코드 리뷰, Vercel, Swift LSP 등 체계적 워크플로우
 - **RTK 토큰 절약 hook** - `setup.sh`가 `rtk init -g --auto-patch`(RTK 1.x)를 실행해 CLI 출력을 컨텍스트에 들어가기 전에 압축
-- **Opus + effort high, 전체화면 TUI, 푸시 알림** - 실제로 쓰는 기본값
+- **Opus + effort xhigh, 전체화면 TUI, 푸시 알림** - 실제로 쓰는 기본값
 - **일반 피드백 메모리** ([files/memory/](./files/memory/)) - Claude가 일하는 방식에 대한 피드백 모음 (참고용, 설치 안 됨)
 - **Shell 단축키** - `c` (claude), `ch` (chrome 모드), `--fs` (fork-session)
 - **모드별 컨텍스트** - dev/review/research 마인드셋 전환
@@ -792,15 +827,16 @@ bash setup.sh
 
 | 구성 요소 | 설명 |
 |----------|------|
-| **플러그인** | superpowers (핵심 워크플로우), dx (컨텍스트 관리), cli-anything (CLI 연동), vercel |
+| **플러그인** | superpowers (핵심 워크플로우), dx (컨텍스트 관리), cli-anything (CLI 연동), vercel, swift-lsp (Swift 언어 서버). 프로젝트 전용 플러그인(예: Godot 프로젝트의 gamedev 스킬)은 글로벌 settings에 넣지 않음 |
+| **현황 패널 mod** | `files/mods/companion/` → `~/.claude/mods/companion`, `CLAUDE_CODE_PLUGIN_DIRS`로 로드. 모델별 주간(Fable 등)·추가사용은 계정 사용량 엔드포인트(`/usage`가 읽는 것)를 엔진의 인증 핸들로 읽음(토큰은 mod에 안 넘어옴). `/hud refresh`로 즉시 새로고침. 데스크톱 오버레이 앱은 선택, 캐릭터 이미지·3D 모델은 레포에 없음 |
 | **디자인 스킬** | [impeccable](https://github.com/pbakaus/impeccable) 21개, v2.0.2에 고정 (이후 업스트림이 바이너리를 내려받는 단일 스킬로 합쳐져서). 고정 커밋은 `files/skills/NOTICE.md` |
-| **기본 모델 설정** | `model: opus`, effort high, `tui: fullscreen`, 백그라운드 에이전트 푸시 알림 |
+| **기본 모델 설정** | `model: opus`, effort xhigh, `tui: fullscreen`, 백그라운드 에이전트 푸시 알림 |
 | **메모리** | `files/memory/` 일반 피드백 13개. 메모리는 프로젝트별로 저장되므로 설치하지 않고 참고용으로 둠. 회사·동료·개인 관련 메모리는 제외 |
 | **MCP 서버 (글로벌)** | atlassian-agent (Jira/Confluence), firecrawl-mcp (웹 검색/스크래핑), pencil (디자인 편집) |
 | **MCP 서버 (프로젝트 전용, `~/.claude.json`)** | `~/Downloads/resume`: gmail, gmail-mcp, browser-fetch · `~/work/work-monorepo`: figma, figma-mcp · `~/project/oncall-bot`: atlassian-agent |
 | **MCP 서버 (커밋용, `.mcp.json`)** | work-monorepo: datadog · everything-claude-code: github/context7/exa/memory/playwright/sequential-thinking |
 | **프로젝트 스코프 설정** | `<repo>/.claude/settings.json` (팀 공유) + `settings.local.json` (개인) - hooks/permissions를 프로젝트별로. 예: auto-card-news-ver2는 git push 전 pytest 알림, vc-smart-simulator는 Bash 전 lint 실행 |
-| **상태바** | 모델/git/컨텍스트 사용률/예상 비용/토큰 실시간 표시 |
+| **상태바** | 모델+effort/git/컨텍스트 사용률/세션 비용(`cost.total_cost_usd`, 단가표 하드코딩 없음)/토큰 실시간 표시 |
 | **Stop Hook** | 컨텍스트 85% 초과 시 /half-clone 안내 |
 | **커스텀 커맨드 (자체 5개)** | /review, /quick-commit, /verify, /handoff, /parallel-plan |
 | **커스텀 커맨드 (wshobson 4개)** | /slo-implement (SLO/burn-rate), /sql-migrations (zero-downtime), /incident-response (SRE 오케스트레이션), /security-sast (다언어 SAST) |

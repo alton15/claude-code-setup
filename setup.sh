@@ -97,6 +97,21 @@ else
     echo "      No agents to install"
 fi
 
+# 8c. Companion mod: the "현황" side pane (usage incl. per-model weekly such as
+# Fable, model/effort, running tools, tasks). settings.json loads it through
+# CLAUDE_CODE_PLUGIN_DIRS. `src/.` + mkdir copies contents on BSD and GNU cp alike.
+echo "      Installing companion mod..."
+MOD_SRC="$SCRIPT_DIR/files/mods/companion"
+MOD_DEST="$CLAUDE_DIR/mods/companion"
+if [ -d "$MOD_SRC" ]; then
+    mkdir -p "$MOD_DEST"
+    cp -R "$MOD_SRC/." "$MOD_DEST/"
+    chmod +x "$MOD_DEST/desktop/build.sh"
+    echo "      Installed: $MOD_DEST (desktop app is optional: $MOD_DEST/desktop/build.sh)"
+else
+    echo "      No mod to install"
+fi
+
 # 9. Shell aliases
 echo "[9/9] Installing shell aliases..."
 SHELL_RC="$HOME/.zshrc"
@@ -135,6 +150,7 @@ echo "  claude plugin install superpowers@claude-plugins-official"
 echo "  claude plugin install dx@ykdojo"
 echo "  claude plugin install cli-anything@cli-anything"
 echo "  claude plugin install vercel@claude-plugins-official"
+echo "  claude plugin install swift-lsp@claude-plugins-official   # Swift LSP (needs Xcode / sourcekit-lsp)"
 echo ""
 
 # 10. Reference repos

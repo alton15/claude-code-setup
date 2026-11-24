@@ -1,0 +1,11 @@
+{
+  "name": "companion",
+  "version": "0.2.0",
+  "description": "Side pane with live usage (5h, weekly, per-model weekly such as Fable, usage credits), the model in use, running tools and tasks, plus a desktop mascot that reacts to what you do",
+  "types": "./types/index.d.ts",
+  "network": {
+    "hosts": [
+      "api.anthropic.com"
+    ]
+  }
+}
