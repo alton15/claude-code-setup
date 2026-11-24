@@ -14,7 +14,7 @@ import {
   syncDesktop,
   toUsage,
 } from './companion'
-import { modelName, toolLabel } from './format'
+import { elapsed, modelName, toolLabel } from './format'
 import { renderPane } from './pane'
 import { isBusy, reactionForTool } from './reactions'
 import type { Reaction } from './reactions'
@@ -34,6 +34,7 @@ import {
 const PANE_TITLE = '현황'
 const PANE_COLUMNS = 44
 const SLEEP_CHECK_MS = 30_000
+/** How often each session looks at the shared usage reading; it fetches only when that is stale. */
 const ACCOUNT_POLL_MS = 5 * 60_000
 const ACTIVE_MAX = 20
 
@@ -70,9 +71,9 @@ export const register: Register = on => {
       void checkSleepy($)
     })
     $.clock.every(ACCOUNT_POLL_MS, () => {
-      void refreshAccount($, true)
+      void refreshAccount($)
     })
-    void refreshAccount($, true)
+    void refreshAccount($)
 
     void $.ui.open({ id: PANE, title: PANE_TITLE, columns: PANE_COLUMNS })
     await say($, 'greet')
@@ -99,7 +100,14 @@ export const register: Register = on => {
     if (arg === 'refresh') {
       await refreshAccount($, true)
       const account = await readAccount($)
-      if (account?.error !== undefined) return { text: `사용량을 못 읽었어요: ${account.error}` }
+      if (account?.error !== undefined) {
+        const now = await $.clock.now()
+        const retry =
+          account.retryAt !== undefined && account.retryAt > now
+            ? ` · ${elapsed(account.retryAt - now)} 뒤 다시 읽어요`
+            : ''
+        return { text: `사용량을 못 읽었어요: ${account.error}${retry}` }
+      }
       const rows = (account?.windows ?? []).map(w => `${w.label} ${w.percentUsed}%`)
       return { text: rows.length > 0 ? `사용량을 새로 읽었어요: ${rows.join(', ')}` : '사용량을 새로 읽었어요.' }
     }

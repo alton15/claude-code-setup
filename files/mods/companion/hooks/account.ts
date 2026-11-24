@@ -93,21 +93,39 @@ export function parseAccountUsage(body: unknown): AccountReading {
   return { windows: [...scoped, ...older], extra: extraUsage(body.extra_usage) }
 }
 
-export type AccountOutcome = { isOk: true; reading: AccountReading } | { isOk: false; error: string }
+const TOO_MANY_REQUESTS = 429
 
-export async function fetchAccountUsage($: Dollar): Promise<AccountOutcome> {
+export type AccountAuth = { isOk: true; handle: string } | { isOk: false; error: string }
+
+/** The subscription login's opaque handle; a QUIET_ERRORS error without one. */
+export async function authorizeUsage($: Dollar): Promise<AccountAuth> {
   const auth = await $.session.authorize()
   if (auth === null) return { isOk: false, error: 'no-login' }
   if (auth.kind !== 'bearer') return { isOk: false, error: 'api-key' }
+  return { isOk: true, handle: auth.handle }
+}
 
+export type AccountOutcome =
+  | { isOk: true; reading: AccountReading; body: unknown }
+  | { isOk: false; error: string; isRateLimited: boolean; retryAfter?: string }
+
+export async function fetchAccountUsage($: Dollar, handle: string): Promise<AccountOutcome> {
   try {
     const response = await $.http.fetch(USAGE_URL, {
-      auth: auth.handle,
+      auth: handle,
       headers: { 'anthropic-beta': OAUTH_BETA, 'Content-Type': 'application/json' },
     })
-    if (!response.ok) return { isOk: false, error: `HTTP ${response.status}` }
-    return { isOk: true, reading: parseAccountUsage(JSON.parse(response.text)) }
+    if (!response.ok) {
+      return {
+        isOk: false,
+        error: `HTTP ${response.status}`,
+        isRateLimited: response.status === TOO_MANY_REQUESTS,
+        retryAfter: response.headers['retry-after'],
+      }
+    }
+    const body: unknown = JSON.parse(response.text)
+    return { isOk: true, reading: parseAccountUsage(body), body }
   } catch (error) {
-    return { isOk: false, error: error instanceof Error ? error.message : String(error) }
+    return { isOk: false, error: error instanceof Error ? error.message : String(error), isRateLimited: false }
   }
 }

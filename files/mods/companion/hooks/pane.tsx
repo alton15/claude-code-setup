@@ -93,12 +93,21 @@ export async function renderPane($: EngineInterface, e: PaneInput) {
     )
   }
 
+  const retryIn =
+    account?.retryAt !== undefined && account.retryAt > clockNow ? account.retryAt - clockNow : undefined
   const accountNote =
     account?.error !== undefined && !QUIET_ERRORS.has(account.error) ? (
-      <Text dimColor wrap="truncate-end">
-        {padCols('모델별', LABEL_COLS)}못 읽음 ({account.error})
-        {account.fetchedAt > 0 ? ` · ${elapsed(clockNow - account.fetchedAt)} 전 값` : ''}
-      </Text>
+      <Box flexDirection="column">
+        <Text dimColor wrap="truncate-end">
+          {padCols('모델별', LABEL_COLS)}못 읽음 ({account.error})
+          {account.fetchedAt > 0 ? ` · ${elapsed(clockNow - account.fetchedAt)} 전 값` : ''}
+        </Text>
+        {retryIn !== undefined && (
+          <Text dimColor wrap="truncate-end">
+            {' '.repeat(LABEL_COLS)}모든 세션이 {elapsed(retryIn)} 뒤 다시 읽음
+          </Text>
+        )}
+      </Box>
     ) : null
 
   const extra = account?.extra

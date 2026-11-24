@@ -1,12 +1,15 @@
 import type { EngineInterface, SessionRateLimit, Timer } from 'claude-code'
 
 import type { AccountUsage, Usage } from '../types'
-import { fetchAccountUsage } from './account'
+import { authorizeUsage, fetchAccountUsage, parseAccountUsage } from './account'
+import type { AccountReading } from './account'
 import { desktopState, imagesFor, indexAssets, paths } from './bridge'
 import { windowName } from './format'
 import type { AssetIndex, Paths } from './bridge'
 import { isTransient, pick, react } from './reactions'
 import type { Reaction } from './reactions'
+import { afterFailure, afterSuccess, claim, planRead, readShared, retryAfterMs, writeShared } from './shared'
+import type { Shared } from './shared'
 import {
   readActive,
   readCompactAt,
@@ -27,7 +30,10 @@ const CONTEXT_WARN_PERCENT = 80
 /** Warn this many points before the auto-compact point, when one is set. */
 const COMPACT_WARN_MARGIN = 5
 const LIMIT_WARN_PERCENT = 90
-/** Least time between two reads of the account's usage endpoint, unless forced. */
+/**
+ * Least time between two looks at the shared usage reading by this process,
+ * unless forced: a floor even when the shared file cannot be written.
+ */
 const ACCOUNT_MIN_GAP_MS = 2 * 60_000
 
 const NO_ASSETS: AssetIndex = {
@@ -194,36 +200,85 @@ async function warnAccount($: Dollar, account: AccountUsage): Promise<void> {
   }
 }
 
-async function readAccount($: Dollar, at: number): Promise<void> {
-  const outcome = await fetchAccountUsage($)
-  const next = await updateAccount($, prev =>
-    outcome.isOk
-      ? { ...outcome.reading, fetchedAt: at }
-      : {
-          windows: prev?.windows ?? [],
-          extra: prev?.extra,
-          fetchedAt: prev?.fetchedAt ?? 0,
-          error: outcome.error,
-        },
-  )
-  await setNow($, at)
-  if (!outcome.isOk) {
-    $.ui.log(`companion: usage endpoint read failed: ${outcome.error}`, { to: 'debug' })
+function readingOf($: Dollar, shared: Shared): AccountReading | undefined {
+  if (shared.body === undefined) return undefined
+  try {
+    return parseAccountUsage(shared.body)
+  } catch (error) {
+    $.ui.log(`companion: shared usage body unreadable: ${String(error)}`, { to: 'debug' })
+    return undefined
+  }
+}
+
+/** Draws what the shared file says; this session's last windows while it holds no good read. */
+function adopt($: Dollar, shared: Shared) {
+  const reading = readingOf($, shared)
+  return updateAccount($, prev => ({
+    windows: reading?.windows ?? prev?.windows ?? [],
+    extra: reading === undefined ? prev?.extra : reading.extra,
+    fetchedAt: reading === undefined ? (prev?.fetchedAt ?? 0) : shared.fetchedAt,
+    error: shared.error,
+    retryAt: shared.retryAt,
+  }))
+}
+
+/** Claims the attempt in the shared file, asks the endpoint, and shares what it answered. */
+async function fetchShared(
+  $: Dollar,
+  file: string,
+  shared: Shared | undefined,
+  handle: string,
+  at: number,
+): Promise<Shared> {
+  const claimed = claim(shared, at)
+  await writeShared($, file, claimed)
+  const outcome = await fetchAccountUsage($, handle)
+  if (!outcome.isOk) $.ui.log(`companion: usage endpoint read failed: ${outcome.error}`, { to: 'debug' })
+  const next = outcome.isOk
+    ? afterSuccess(outcome.body, at)
+    : afterFailure(claimed, at, {
+        error: outcome.error,
+        isRateLimited: outcome.isRateLimited,
+        retryAfterMs: retryAfterMs(outcome.retryAfter, at),
+      })
+  await writeShared($, file, next)
+  return next
+}
+
+async function readAccount($: Dollar, at: number, isForced: boolean): Promise<void> {
+  const auth = await authorizeUsage($)
+  if (!auth.isOk) {
+    await updateAccount($, prev => ({
+      windows: prev?.windows ?? [],
+      extra: prev?.extra,
+      fetchedAt: prev?.fetchedAt ?? 0,
+      error: auth.error,
+    }))
+    await setNow($, at)
     return
   }
-  if (next !== null) await warnAccount($, next)
+
+  const { usageFile } = await loadPaths($)
+  const shared = await readShared($, usageFile)
+  const isWaiting = shared !== undefined && planRead(shared, at, isForced) === 'wait'
+  const next = isWaiting ? shared : await fetchShared($, usageFile, shared, auth.handle, at)
+  const account = await adopt($, next)
+  await setNow($, at)
+  if (account !== null && account.error === undefined) await warnAccount($, account)
 }
 
 /**
- * Re-reads the per-model windows and usage credits; at most once per
- * ACCOUNT_MIN_GAP_MS unless forced, and never two reads at once.
+ * Re-reads the per-model windows and usage credits from the reading every
+ * session shares, asking the endpoint only when that is stale (or when forced)
+ * and never during a 429 backoff; at most once per ACCOUNT_MIN_GAP_MS unless
+ * forced, and never two reads at once.
  */
 export async function refreshAccount($: Dollar, isForced = false): Promise<void> {
   if (runtime.accountRead !== undefined) return runtime.accountRead
   const at = await $.clock.now()
   if (!isForced && at - runtime.accountAt < ACCOUNT_MIN_GAP_MS) return
 
-  const reading = readAccount($, at)
+  const reading = readAccount($, at, isForced)
     .catch((error: unknown) => {
       $.ui.log(`companion: usage refresh failed: ${String(error)}`, { to: 'debug' })
     })

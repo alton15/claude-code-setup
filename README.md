@@ -416,16 +416,16 @@ What can live under `<repo>/.claude/` besides `settings*.json`:
 |-----|--------|
 | Context bar with a `│` tick at the auto-compact point | `$.session.usage()`; the tick comes from `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE`, and the warning fires 5 points before it |
 | 5-hour · weekly | The engine's rate-limit readings |
-| **Per-model weekly (Fable, Sonnet, Opus)** · usage credits | The account usage endpoint `/usage` reads (`api.anthropic.com/api/oauth/usage`). The engine does not hand these to mods, so the mod calls it through `$.session.authorize()` + `$.http.fetch` — the token stays with the engine, the mod only holds an opaque handle. Read at session start, every 5 minutes, and after a turn (at most every 2 minutes) |
+| **Per-model weekly (Fable, Sonnet, Opus)** · usage credits | The account usage endpoint `/usage` reads (`api.anthropic.com/api/oauth/usage`). The engine does not hand these to mods, so the mod calls it through `$.session.authorize()` + `$.http.fetch` — the token stays with the engine, the mod only holds an opaque handle. Checked at session start, every 5 minutes, and after a turn (at most every 2 minutes). The endpoint is rate limited per account, so every session shares one reading in `~/.claude/companion/usage.json` and fetches only when it is over 5 minutes old; a 429 makes every session wait 10, 20, then at most 30 minutes (longer if the server's `Retry-After` says so) |
 | "⚠ runs out at HH:MM at this pace" | Linear projection of use so far, shown only when it lands before the reset |
 | Model · effort | The main loop's last `turn.step` (subagent requests ignored), so a `/model` switch or fallback shows at once |
 | Running tools · tasks | `tool.call`, `TaskCreate`/`TaskUpdate`/`TodoWrite` |
 
-`/hud refresh` re-reads the per-model windows now; on an API-key login those rows quietly drop out, and a failed read keeps the last value with the reason. A per-model weekly window past 90% raises one toast. The optional desktop overlay app (`/hud desktop`) and its build steps are in the mod's own [README](./files/mods/companion/README.md); character images and 3D models are not in this repo.
+`/hud refresh` re-reads the per-model windows now (during a 429 backoff it only says when the next read is); on an API-key login those rows quietly drop out, and a failed read keeps the last value with the reason. A per-model weekly window past 90% raises one toast. The optional desktop overlay app (`/hud desktop`) and its build steps are in the mod's own [README](./files/mods/companion/README.md); character images and 3D models are not in this repo.
 
 ```bash
 cd ~/.claude/mods/companion
-claude plugin test .       # 19 tests: pane rows, usage endpoint parsing, error paths, formatters
+claude plugin test .       # 34 tests: pane rows, usage endpoint parsing, shared reading and 429 backoff, error paths, formatters
 claude plugin validate .
 ```
 
@@ -828,7 +828,7 @@ bash setup.sh
 | 구성 요소 | 설명 |
 |----------|------|
 | **플러그인** | superpowers (핵심 워크플로우), dx (컨텍스트 관리), cli-anything (CLI 연동), vercel, swift-lsp (Swift 언어 서버). 프로젝트 전용 플러그인(예: Godot 프로젝트의 gamedev 스킬)은 글로벌 settings에 넣지 않음 |
-| **현황 패널 mod** | `files/mods/companion/` → `~/.claude/mods/companion`, `CLAUDE_CODE_PLUGIN_DIRS`로 로드. 모델별 주간(Fable 등)·추가사용은 계정 사용량 엔드포인트(`/usage`가 읽는 것)를 엔진의 인증 핸들로 읽음(토큰은 mod에 안 넘어옴). `/hud refresh`로 즉시 새로고침. 데스크톱 오버레이 앱은 선택, 캐릭터 이미지·3D 모델은 레포에 없음 |
+| **현황 패널 mod** | `files/mods/companion/` → `~/.claude/mods/companion`, `CLAUDE_CODE_PLUGIN_DIRS`로 로드. 모델별 주간(Fable 등)·추가사용은 계정 사용량 엔드포인트(`/usage`가 읽는 것)를 엔진의 인증 핸들로 읽음(토큰은 mod에 안 넘어옴). 모든 세션이 읽은 값을 `~/.claude/companion/usage.json` 하나로 공유하고(5분 안 값이면 재사용), 429면 10→20→30분 백오프. `/hud refresh`로 즉시 새로고침. 데스크톱 오버레이 앱은 선택, 캐릭터 이미지·3D 모델은 레포에 없음 |
 | **디자인 스킬** | [impeccable](https://github.com/pbakaus/impeccable) 21개, v2.0.2에 고정 (이후 업스트림이 바이너리를 내려받는 단일 스킬로 합쳐져서). 고정 커밋은 `files/skills/NOTICE.md` |
 | **기본 모델 설정** | `model: opus`, effort xhigh, `tui: fullscreen`, 백그라운드 에이전트 푸시 알림 |
 | **메모리** | `files/memory/` 일반 피드백 13개. 메모리는 프로젝트별로 저장되므로 설치하지 않고 참고용으로 둠. 회사·동료·개인 관련 메모리는 제외 |

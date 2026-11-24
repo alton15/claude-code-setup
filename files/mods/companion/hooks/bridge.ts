@@ -11,6 +11,8 @@ export type Paths = {
   root: string
   assets: string
   stateFile: string
+  /** The usage endpoint's reading every session shares (see shared.ts). */
+  usageFile: string
   app: string
 }
 
@@ -24,6 +26,7 @@ export async function paths($: Dollar): Promise<Paths> {
     root,
     assets: `${root}/assets`,
     stateFile: `${root}/state.json`,
+    usageFile: `${root}/usage.json`,
     app: `${root}/Companion.app`,
   }
 }

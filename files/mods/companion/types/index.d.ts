@@ -37,6 +37,8 @@ export type AccountUsage = {
   fetchedAt: number
   /** Why the last read failed; absent when it succeeded. */
   error?: string
+  /** After a 429, no session reads again before this (`$.clock.now()` ms). */
+  retryAt?: number
 }
 
 /** The main loop's model and effort as its last model request named them. */

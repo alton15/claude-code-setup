@@ -6,6 +6,9 @@ const HOME = '/Users/tester'
 const ASSETS = `${HOME}/.claude/companion/assets`
 const HANDLE = 'handle-1'
 const FABLE_RESET = '2026-11-28T00:00:00.000Z'
+const USAGE_FILE = `${HOME}/.claude/companion/usage.json`
+const NOW = Date.parse('2026-11-24T06:00:00.000Z')
+const MINUTE = 60_000
 
 const PANE = {
   plugin: 'companion',
@@ -49,21 +52,38 @@ type EngineOptions = {
   isLoggedIn?: boolean
   usageStatus?: number
   usageBody?: unknown
+  usageHeaders?: Record<string, string>
+  /** Files on disk at the start, by absolute path: what other sessions wrote. */
+  files?: Record<string, string>
 }
 
-/** Stands in for the engine: one PNG per mood, no desktop app, writes and fetches recorded. */
+/** Stands in for the engine: one PNG per mood, no desktop app, files in memory, writes and fetches recorded. */
 function engine(on: On, options: EngineOptions = {}) {
-  const { isAppBuilt = false, env = {}, isLoggedIn = true, usageStatus = 200, usageBody = USAGE_BODY } = options
+  const {
+    isAppBuilt = false,
+    env = {},
+    isLoggedIn = true,
+    usageStatus = 200,
+    usageBody = USAGE_BODY,
+    usageHeaders = {},
+  } = options
   const writes: Write[] = []
   const fetches: Fetch[] = []
+  const files = new Map(Object.entries(options.files ?? {}))
   mock.env(on, { HOME, ...env })
-  const clock = mock.clock(on, { now: Date.parse('2026-11-24T06:00:00.000Z') })
+  const clock = mock.clock(on, { now: NOW })
   on('fs.list', () => ({
     value: [{ name: '01.png', kind: 'file', size: 1, mtimeMs: 0, isLink: false }],
   }))
-  on('fs.exists', () => ({ value: isAppBuilt }))
+  on('fs.exists', (_, e) => ({ value: e.path.endsWith('.app') ? isAppBuilt : files.has(e.path) }))
+  on('fs.read', (_, e) => {
+    const text = files.get(e.path)
+    if (text === undefined) throw new Error(`ENOENT: ${e.path}`)
+    return { value: text }
+  })
   on('fs.write', (_, e) => {
     writes.push({ path: e.path, text: e.text })
+    files.set(e.path, e.text)
     return { value: undefined }
   })
   on('session.usage', () => ({
@@ -81,11 +101,12 @@ function engine(on: On, options: EngineOptions = {}) {
       value: {
         status: usageStatus,
         ok: usageStatus >= 200 && usageStatus < 300,
-        headers: {},
+        headers: usageHeaders,
         text: JSON.stringify(usageBody),
       },
     }
   })
+  on('ui.log', () => ({ value: undefined }))
   on('command.register', () => ({ value: { command: 'hud' } }))
   on('ui.open', () => ({ value: { isPlaced: true } }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
@@ -94,7 +115,21 @@ function engine(on: On, options: EngineOptions = {}) {
   on('turn.step', async function* (_, e) {
     return { turnId: e.turnId, index: e.index, answer: '', toolUses: [], stopReason: null, usage: null }
   })
-  return { writes, fetches, clock }
+  /** What the shared usage file holds now, parsed; undefined while none was written. */
+  const shared = () => {
+    const text = files.get(USAGE_FILE)
+    return text === undefined ? undefined : JSON.parse(text)
+  }
+  return { writes, fetches, clock, shared }
+}
+
+function hud($: Parameters<TestBody>[0], args: string) {
+  return $.command.run({
+    command: 'hud',
+    args,
+    origin: { kind: 'composer' },
+    presentation: { isFullscreen: true, columns: 160 },
+  })
 }
 
 async function start($: Parameters<TestBody>[0], clock: { settle: () => Promise<void> }) {
@@ -159,6 +194,65 @@ test('without a subscription login the pane shows no per-model rows and no error
   expect(await ui.find({ type: 'Text', text: /못 읽음/ })).toBeUndefined()
   expect(await ui.find({ type: 'Text', text: /^Fable/ })).toBeUndefined()
   await ui.unmount()
+})
+
+test('a fresh reading another session shared is shown without fetching', async ($, on) => {
+  const fromOtherSession = { v: 1, body: USAGE_BODY, fetchedAt: NOW - MINUTE, attemptAt: NOW - MINUTE, rateLimited: 0 }
+  const { clock, fetches } = engine(on, { files: { [USAGE_FILE]: JSON.stringify(fromOtherSession) } })
+  await start($, clock)
+
+  expect(fetches).toEqual([])
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect((await ui.find({ type: 'Text', text: /^Fable/ }))?.text).toContain('37.5%')
+  await ui.unmount()
+})
+
+test('a stale shared reading is fetched once and shared again', async ($, on) => {
+  const stale = { v: 1, body: {}, fetchedAt: NOW - 10 * MINUTE, attemptAt: NOW - 10 * MINUTE, rateLimited: 0 }
+  const { clock, fetches, shared } = engine(on, { files: { [USAGE_FILE]: JSON.stringify(stale) } })
+  await start($, clock)
+
+  expect(fetches.length).toBe(1)
+  expect(shared()).toEqual({ v: 1, body: USAGE_BODY, fetchedAt: NOW, attemptAt: NOW, rateLimited: 0 })
+})
+
+test('a 429 holds every read back until its backoff ends, a forced one too', async ($, on) => {
+  const { clock, fetches, shared } = engine(on, { usageStatus: 429 })
+  await start($, clock)
+  expect(fetches.length).toBe(1)
+  expect(shared()?.retryAt).toBe(NOW + 10 * MINUTE)
+
+  await clock.advance(5 * MINUTE)
+  const reply = await hud($, 'refresh')
+  expect(fetches.length).toBe(1)
+  expect(reply.text).toContain('HTTP 429')
+  expect(reply.text).toContain('5m00s 뒤 다시')
+
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  expect(await ui.find({ type: 'Text', text: /5m00s 뒤 다시/ })).toBeDefined()
+  await ui.unmount()
+
+  await clock.advance(5 * MINUTE)
+  expect(fetches.length).toBe(2)
+  expect(shared()?.retryAt).toBe(NOW + 30 * MINUTE)
+})
+
+test('a Retry-After longer than the backoff is what the sessions wait', async ($, on) => {
+  const { clock, shared } = engine(on, { usageStatus: 429, usageHeaders: { 'retry-after': '2700' } })
+  await start($, clock)
+
+  expect(shared()?.retryAt).toBe(NOW + 45 * MINUTE)
+})
+
+test('/hud refresh reads now even when the shared reading is fresh', async ($, on) => {
+  const fresh = { v: 1, body: USAGE_BODY, fetchedAt: NOW - MINUTE, attemptAt: NOW - MINUTE, rateLimited: 0 }
+  const { clock, fetches } = engine(on, { files: { [USAGE_FILE]: JSON.stringify(fresh) } })
+  await start($, clock)
+  expect(fetches).toEqual([])
+
+  const reply = await hud($, 'refresh')
+  expect(fetches.length).toBe(1)
+  expect(reply.text).toContain('Fable 37.5%')
 })
 
 test('the model row follows the main loop, not a subagent', async ($, on) => {
@@ -229,7 +323,8 @@ test('a finished turn writes the happy mood to the desktop file', async ($, on) 
   await $.tool.call({ tool: 'Bash', command: 'npm test' })
   await $.turn.complete({ answer: 'ok', durationMs: 5, isAborted: false, turnId: 't1', reason: 'answer' })
 
-  const last = JSON.parse(writes[writes.length - 1]?.text ?? '{}')
+  const desktop = writes.filter(write => write.path.endsWith('/state.json'))
+  const last = JSON.parse(desktop[desktop.length - 1]?.text ?? '{}')
   expect(last.mood).toBe('happy')
   expect(last.file).toBe(`${ASSETS}/happy/01.png`)
 })

@@ -17,7 +17,7 @@ const usage = atom({ plugin: 'companion', key: 'usage' } as const, null, {
 })
 
 const account = atom({ plugin: 'companion', key: 'account' } as const, null, {
-  shape: 'account-1',
+  shape: 'account-2',
 })
 
 const model = atom({ plugin: 'companion', key: 'model' } as const, null, {
